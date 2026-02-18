@@ -380,6 +380,10 @@ select {
   background: color-mix(in srgb, var(--bg-1) 90%, transparent);
 }
 
+.page-7 h2 {
+  margin: 0;
+}
+
 .page-7 th,
 .page-7 td {
   text-align: left;
@@ -391,8 +395,36 @@ select {
   border-bottom: 0;
 }
 
+.page-7 tbody tr {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: table-row-in var(--dur-base) var(--ease-out) both;
+  animation-delay: var(--row-delay, 0ms);
+}
+
+.page-7.is-reduced tbody tr {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
 .page-8 {
+  position: relative;
+  isolation: isolate;
   color: #f3f3f3;
+}
+
+.page-8::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(40px);
+  background:
+    radial-gradient(circle at 24% 24%, rgb(255 255 255 / 0.08), transparent 40%),
+    radial-gradient(circle at 76% 76%, rgb(255 96 96 / 0.12), transparent 46%),
+    linear-gradient(140deg, #020202 0%, #070707 48%, #020202 100%);
 }
 
 .art-kicker {
@@ -403,6 +435,9 @@ select {
 }
 
 .flashlight-text {
+  --mx: 50%;
+  --my: 50%;
+  --r: 120px;
   width: min(980px, 92vw);
   min-height: 240px;
   display: grid;
@@ -421,7 +456,7 @@ select {
 .origin-layer {
   color: #fff;
   z-index: 2;
-  mask-image: radial-gradient(circle 120px at var(--mx) var(--my), transparent 0%, #000 72%);
+  mask-image: radial-gradient(circle var(--r) at var(--mx) var(--my), transparent 0%, #000 72%);
 }
 
 .translation-layer {
@@ -540,6 +575,17 @@ select {
   }
 }
 
+@keyframes table-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
   .settings-panel {
     width: calc(100vw - 24px);
@@ -553,6 +599,10 @@ select {
 
   .page-slot.is-adjacent {
     opacity: 0.08;
+  }
+
+  .flashlight-text {
+    --r: 84px;
   }
 }
 

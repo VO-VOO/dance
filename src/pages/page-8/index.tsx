@@ -1,30 +1,24 @@
 import { FlashlightText } from '../../ui/text/FlashlightText'
 import type { PageRenderProps } from '../registry'
 
-const ART_TEXTS = [
-  {
-    origin: 'Aesthetic curiosity drifts between wonder and noise.',
-    translation: '审美与好奇在惊奇与噪声之间漂移。',
-    source: 'Source: Narrative Fragment 01',
-  },
-  {
-    origin: 'We build mirrors, then mistake reflections for truth.',
-    translation: '我们制造镜子，却常把倒影误认为真相。',
-    source: 'Source: Narrative Fragment 02',
-  },
-  {
-    origin: 'Speed magnifies desire before meaning catches up.',
-    translation: '速度先放大欲望，而意义总是迟到。',
-    source: 'Source: Narrative Fragment 03',
-  },
-]
+import { page8TextPairs } from './textData'
 
 export function Page8({ laneIndex, reducedMotion }: PageRenderProps) {
-  const item = ART_TEXTS[Math.min(laneIndex, ART_TEXTS.length - 1)]
+  if (page8TextPairs.length === 0) {
+    return (
+      <section className="page page-8" aria-label="第8页 艺术文本">
+        <p>未检测到可用文案，请检查 page-8.yaml。</p>
+      </section>
+    )
+  }
+
+  const activeIndex = Math.min(laneIndex, page8TextPairs.length - 1)
+  const item = page8TextPairs[activeIndex]
+  const kicker = `片段 ${activeIndex + 1} / ${page8TextPairs.length}`
 
   return (
     <section className="page page-8" aria-label="第8页 艺术文本">
-      <p className="art-kicker">审美·好奇·迷失·浮躁</p>
+      <p className="art-kicker">{kicker}</p>
       <FlashlightText
         origin={item.origin}
         translation={item.translation}

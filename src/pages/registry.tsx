@@ -11,6 +11,7 @@ import { Page6 } from './page-6'
 import { videoLaneCount } from './page-6/videoData'
 import { Page7 } from './page-7'
 import { Page8 } from './page-8'
+import { page8LaneCount } from './page-8/textData'
 
 export type PageRenderProps = {
   laneIndex: number
@@ -35,7 +36,7 @@ const pages: PageDefinition[] = [
   { id: 5, title: 'Gallery', lanes: galleryLaneCount, Component: Page5 },
   { id: 6, title: 'Video', lanes: videoLaneCount, Component: Page6 },
   { id: 7, title: 'Table', lanes: 1, Component: Page7 },
-  { id: 8, title: 'Art', lanes: 3, Component: Page8 },
+  { id: 8, title: 'Art', lanes: page8LaneCount, Component: Page8 },
 ]
 
 export default pages
