@@ -1,5 +1,4 @@
 import { CardDeck, type CardItem } from '../../ui/cards/CardDeck'
-import type { PageRenderProps } from '../registry'
 
 const CARDS: CardItem[] = [
   {
@@ -28,7 +27,7 @@ const CARDS: CardItem[] = [
   },
 ]
 
-export function Page3(_props: PageRenderProps) {
+export function Page3() {
   return (
     <section className="page page-3" aria-label="第3页 AI商用领域卡片">
       <h2>AI达到初步商用阶段的领域</h2>

@@ -35,6 +35,14 @@ export function AppShell() {
 
   const activePage = pages[state.pageIndex]
 
+  const dispatchLaneNext = (pageId: number, laneCount: number) => {
+    dispatch({
+      type: 'LANE_NEXT',
+      pageId,
+      laneCount,
+    })
+  }
+
   useKeyboardNav({
     enabled: shortcutsEnabled,
     onPagePrev: () => dispatch({ type: 'PAGE_PREV', pageCount: pages.length }),
@@ -45,11 +53,7 @@ export function AppShell() {
         pageId: activePage.id,
       }),
     onLaneNext: () =>
-      dispatch({
-        type: 'LANE_NEXT',
-        pageId: activePage.id,
-        laneCount: activePage.lanes,
-      }),
+      dispatchLaneNext(activePage.id, activePage.lanes),
   })
 
   useEffect(() => {
@@ -78,6 +82,7 @@ export function AppShell() {
         state={state}
         settings={settings}
         reducedMotion={reducedMotion}
+        onLaneNextForPage={dispatchLaneNext}
       />
       <PageIndicator current={state.pageIndex + 1} total={pages.length} />
     </div>

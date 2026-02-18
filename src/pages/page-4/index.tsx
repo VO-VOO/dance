@@ -1,6 +1,4 @@
-import type { PageRenderProps } from '../registry'
-
-export function Page4(_props: PageRenderProps) {
+export function Page4() {
   return (
     <section className="page page-4" aria-label="第4页 预留">
       <h2>Page 4</h2>

@@ -2,7 +2,7 @@
 
 ## 1. 文档目标与范围
 
-本文件基于初始设计文稿 `I see you.md`，定义一套可直接进入工程实施的完整开发规范，覆盖：
+本文件基于初始设计文稿 /Users/utolaris/Documents/obsidian/I see you.md，定义一套可直接进入工程实施的完整开发规范，覆盖：
 
 - 页面信息架构与模块边界
 - 视觉系统（色彩、字体、间距、材质）
@@ -49,6 +49,13 @@
 - 状态：`useReducer`（或 Zustand，二选一）
 - 动画：`GSAP Timeline`（主推荐）
 - 样式：`CSS Variables + 局部模块化 CSS`（可混合 Tailwind）
+- 包管理器：`pnpm`
+
+依赖安装命令：
+
+```bash
+pnpm install
+```
 
 选择理由：
 
@@ -105,6 +112,12 @@ src/
   styles/
     tokens.css
     global.css
+
+image/
+  description.yaml
+  *.png|*.jpg|*.jpeg|*.webp|*.avif
+
+page-8.yaml
 ```
 
 ---
@@ -329,17 +342,111 @@ export function Page1() {
 - 标题与描述与图片时间轴同步
 - 文本容器始终居中，长度变化不抖动
 
-数据结构建议：
+数据结构（运行时统一形态）：
 
 ```ts
 type GalleryItem = {
   id: string;
   imageSrc: string;
-  bgSrc?: string;
   title: string;
   description: string;
 };
 ```
+
+### 7.4.1 资产来源（自动驱动）
+
+Page 5 的内容由仓库根目录 `image/` 自动驱动：
+
+- 图片目录：`/Users/utolaris/Desktop/speech/image`
+- 描述文件：`/Users/utolaris/Desktop/speech/image/description.yaml`
+
+当新增图片或修改 `description.yaml` 后，页面数据应自动更新（开发模式热更新，构建后随新包生效）。
+
+### 7.4.2 description.yaml 规范
+
+必须使用 **YAML 数组**，不要使用重复顶层键。推荐结构：
+
+```yaml
+- 主标题: 浮世绘
+  介绍文字: 荒海巨蛸袭船图
+  对应文件: 1-荒海巨蛸袭船图.png
+  位置: 1
+
+- 主标题: 专辑封面
+  介绍文字: 喀秋莎
+  对应文件: 2-喀秋莎.png
+  位置: 2
+```
+
+字段约束：
+
+- `主标题`：映射到 `GalleryItem.title`
+- `介绍文字`：映射到 `GalleryItem.description`
+- `对应文件`：支持文件名或绝对路径；运行时按 `basename` 匹配 `image/` 下真实文件
+- `位置`：可选数字，控制排序（升序）
+
+### 7.4.3 自动装配逻辑（实现规范）
+
+实现时必须满足：
+
+1. 读取 `description.yaml` 并解析为数组。
+2. 自动扫描 `image/` 目录内图片。
+3. 用 `description.yaml` 的 `对应文件` 与实际图片按文件名匹配。
+4. 产出 `GalleryItem[]` 并按 `位置` 排序。
+5. `Page5` 只消费该数组，不再硬编码图片数据。
+
+参考实现（示例）：
+
+```ts
+import descriptionRaw from "../../../image/description.yaml?raw";
+import { parse } from "yaml";
+
+type YamlItem = {
+  主标题: string;
+  介绍文字: string;
+  对应文件: string;
+  位置?: number;
+};
+
+const imageModules = import.meta.glob("/image/*.{png,jpg,jpeg,webp,avif}", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+
+const imageByBasename = new Map(
+  Object.entries(imageModules).map(([path, url]) => [path.split("/").pop()!, url]),
+);
+
+function toBasename(value: string) {
+  return value.split("/").pop()?.trim() ?? "";
+}
+
+export function buildGalleryItems(): GalleryItem[] {
+  const rows = (parse(descriptionRaw) ?? []) as YamlItem[];
+
+  return rows
+    .slice()
+    .sort((a, b) => (a.位置 ?? 9999) - (b.位置 ?? 9999))
+    .map((row, index) => {
+      const file = toBasename(row.对应文件);
+      const imageSrc = imageByBasename.get(file);
+      if (!imageSrc) {
+        throw new Error(`[page5] image not found: ${row.对应文件}`);
+      }
+      return {
+        id: `${index}-${file}`,
+        title: row.主标题,
+        description: row.介绍文字,
+        imageSrc,
+      };
+    });
+}
+```
+
+说明：
+
+- 该规范保证“只改 `image/` 与 `description.yaml`，不改 TS 代码”即可让 Page 5 获得新内容。
+- `ImageStack` 仍沿用 `active + next3` 渲染窗口规则，无需改动核心窗口化逻辑。
 
 窗口函数示例：
 
@@ -363,6 +470,37 @@ function getVisibleStack(items: GalleryItem[], activeIndex: number) {
 - `aspect-ratio: 16 / 9`
 - 辉光放在伪元素，避免直接对视频本体做重滤镜
 - 仅 active 视频播放，其他视频暂停并释放引用
+
+### 7.5.1 资产来源与加载顺序（自动驱动）
+
+Page 6 视频由仓库根目录 `video/` 自动驱动：
+
+- 视频目录：`/Users/utolaris/Desktop/speech/video`
+- 支持格式：`*.mp4`（推荐）
+- 加载顺序：按**视频文件名升序**加载（例如 `1.mp4 -> 2.mp4 -> 3.mp4`）
+
+实现约束：
+
+1. 自动扫描 `video/` 目录生成播放列表，不再在代码中硬编码视频数组。
+2. 右键“下一个视频”与左右 lane 切换均基于该排序后的列表。
+3. 新增视频文件后无需改 TS 代码，页面应自动出现新视频。
+4. 文件名建议使用可排序命名（如 `001.mp4`、`002.mp4`），避免 `10.mp4` 在 `2.mp4` 前面。
+
+参考实现（示例）：
+
+```ts
+const videoModules = import.meta.glob('/video/*.mp4', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>
+
+const videos = Object.entries(videoModules)
+  .map(([path, src]) => ({
+    name: path.split('/').pop() ?? '',
+    src,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
+```
 
 示例：
 
@@ -431,6 +569,86 @@ function getVisibleStack(items: GalleryItem[], activeIndex: number) {
 - 鼠标接近时以 radial mask 形成“探照灯”切换
 - 底部来源文案随文本变化
 - 任意文本长度均保持居中
+
+### 7.7.1 文本来源（自动驱动）
+
+Page 8 文本由仓库根目录 `page-8.yaml` 自动驱动：
+
+- 文件路径：`/Users/utolaris/Desktop/speech/page-8.yaml`
+- 当新增条目或修改文案后，页面内容应自动更新（开发模式热更新，构建后随新包生效）
+
+### 7.7.2 page-8.yaml 规范
+
+必须使用 **YAML 数组**，不要使用重复顶层键。推荐结构：
+
+```yaml
+- 原文: "Νῦν γὰρ βλέπομεν..."
+  译文: "我们如今仿佛对着镜子观看..."
+  底部注释: "《圣经·新约·哥林多前书》"
+  位置: 1
+
+- 原文: "If you can't tell, does it matter?"
+  译文: "如果不能分辨，那有区别吗？"
+  底部注释: "《西部世界》第一季"
+  位置: 2
+```
+
+字段约束：
+
+- `原文`：映射为上层白字文本
+- `译文`：映射为下层红字文本
+- `底部注释`：映射为底部来源文案
+- `位置`：可选数字，控制条目排序（升序）
+
+### 7.7.3 自动装配逻辑（实现规范）
+
+实现时必须满足：
+
+1. 读取 `page-8.yaml` 并解析为数组。
+2. 产出 `TextPair[]`（或等价类型）并按 `位置` 排序。
+3. Page 8 左右切换基于该数组，不再硬编码文案。
+4. `page-8.yaml` 条目数量变化时，Page 8 的 lanes 与切换上限自动同步。
+
+参考实现（示例）：
+
+```ts
+import { parse } from 'yaml'
+import sourceRaw from '../../../page-8.yaml?raw'
+
+type Page8YamlRow = {
+  原文?: unknown
+  译文?: unknown
+  底部注释?: unknown
+  位置?: unknown
+}
+
+type TextPair = {
+  origin: string
+  translation: string
+  source: string
+}
+
+export function buildPage8Pairs(): TextPair[] {
+  const rows = parse(sourceRaw)
+  if (!Array.isArray(rows)) {
+    throw new Error('[page-8] page-8.yaml must be a YAML array')
+  }
+
+  return (rows as Page8YamlRow[])
+    .slice()
+    .sort((a, b) => Number(a.位置 ?? Number.MAX_SAFE_INTEGER) - Number(b.位置 ?? Number.MAX_SAFE_INTEGER))
+    .map((row) => ({
+      origin: String(row.原文 ?? '').trim(),
+      translation: String(row.译文 ?? '').trim(),
+      source: String(row.底部注释 ?? '').trim(),
+    }))
+}
+```
+
+说明：
+
+- 该规范保证“只改 `page-8.yaml`，不改 TS 代码”即可更新第 8 页文案。
+- 探照灯渲染机制（mask/radial gradient）保持不变，仅文本数据改为外部驱动。
 
 探照灯核心示例：
 

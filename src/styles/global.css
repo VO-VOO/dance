@@ -161,6 +161,10 @@ select {
   margin: 0;
 }
 
+.hero-title.is-entering {
+  animation: hero-title-in var(--dur-cinematic) var(--ease-out) both;
+}
+
 .timeline {
   width: min(980px, 92vw);
 }
@@ -187,7 +191,17 @@ select {
   border-radius: var(--radius-md);
   padding: var(--sp-4);
   background: color-mix(in srgb, var(--bg-1) 84%, transparent);
-  animation: timeline-item-in var(--dur-slow) var(--ease-out) both;
+  min-height: 164px;
+}
+
+.timeline-node-group {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-2);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: timeline-node-in var(--dur-base) var(--ease-out) both;
+  animation-delay: var(--node-delay, 0ms);
 }
 
 .timeline-node {
@@ -199,19 +213,27 @@ select {
 }
 
 .timeline-point {
-  font-size: var(--fz-body);
-  margin: var(--sp-2) 0 var(--sp-1);
-}
-
-.timeline-range {
-  font-size: var(--fz-caption);
   margin: 0;
+  font-size: var(--fz-caption);
   color: var(--text-1);
 }
 
+.timeline-range {
+  font-size: var(--fz-body);
+  margin: var(--sp-3) 0 0;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: timeline-range-in var(--dur-base) var(--ease-out) both;
+  animation-delay: var(--range-delay, 0ms);
+}
+
 .timeline.is-reduced .timeline-line,
-.timeline.is-reduced li {
+.timeline.is-reduced .timeline-node-group,
+.timeline.is-reduced .timeline-range,
+.hero-title.is-reduced {
   animation: none;
+  opacity: 1;
+  transform: none;
 }
 
 .card-deck {
@@ -311,6 +333,12 @@ select {
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--line-soft);
+}
+
+.video-hint {
+  margin: 0;
+  color: var(--text-1);
+  font-size: var(--fz-caption);
 }
 
 .video-frame::after {
@@ -455,6 +483,39 @@ select {
   from {
     opacity: 0;
     transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes timeline-node-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes timeline-range-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;

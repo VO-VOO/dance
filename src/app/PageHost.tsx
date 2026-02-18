@@ -7,9 +7,16 @@ type PageHostProps = {
   state: NavState
   settings: TextSettings
   reducedMotion: boolean
+  onLaneNextForPage: (pageId: number, laneCount: number) => void
 }
 
-export function PageHost({ pages, state, settings, reducedMotion }: PageHostProps) {
+export function PageHost({
+  pages,
+  state,
+  settings,
+  reducedMotion,
+  onLaneNextForPage,
+}: PageHostProps) {
   const visibleIndices = [state.pageIndex - 1, state.pageIndex, state.pageIndex + 1].filter(
     (index) => index >= 0 && index < pages.length,
   )
@@ -36,6 +43,8 @@ export function PageHost({ pages, state, settings, reducedMotion }: PageHostProp
                 laneIndex={laneIndex}
                 settings={settings}
                 reducedMotion={reducedMotion}
+                isActivePage={isActive}
+                onLaneNext={() => onLaneNextForPage(page.id, page.lanes)}
               />
             </div>
           </section>
