@@ -40,7 +40,7 @@ export const timelinePoints: TimelinePoint[] = [
   { time: '2025年2月', phase: '赞扬AI', x: '18%', node: 'ring' },
   { time: '2025年6月', phase: '惧怕AI', x: '40%', node: 'ring' },
   { time: '2025年10月', phase: '怀疑AI', x: '70%', node: 'ring' },
-  { time: '2026', phase: '接纳AI', x: '90%', node: 'ring' },
+  { time: '2026年2月', phase: '接纳AI', x: '90%', node: 'ring' },
 ]
 
 export const cardItems: CardContent[] = [

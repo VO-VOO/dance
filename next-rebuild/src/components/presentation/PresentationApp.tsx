@@ -27,6 +27,7 @@ const pageDefinitions: PageDefinition[] = [
   { key: 'video', title: '视频', lanes: videoItems.length },
   { key: 'table', title: '表格', lanes: 1 },
   { key: 'art', title: '艺术文本', lanes: artItems.length },
+  { key: 'thanks', title: '结束页', lanes: 1 },
 ]
 
 type NavState = {
@@ -249,13 +250,16 @@ export default function PresentationApp() {
   )
 
   return (
-    <div className={`presentation-root${reducedMotion ? ' reduced-motion' : ''}`} style={shellStyle}>
+    <div
+      className={`presentation-root${reducedMotion ? ' reduced-motion' : ''}${activePage.key === 'art' ? ' page-art-active' : ''}`}
+      style={shellStyle}
+    >
       <a className="skip-link" href="#active-page">
         跳转到当前页面内容
       </a>
       <div className="global-backdrop" aria-hidden="true" />
 
-      <main className="page-host" aria-label="I SEE YOU 七页叙事演示">
+      <main className="page-host" aria-label="I SEE YOU 八页叙事演示">
         {visibleIndices.map((index) => {
           const page = pageDefinitions[index]
           const laneIndex = state.laneIndexByPage[index] ?? 0
@@ -315,11 +319,13 @@ function renderStoryPage(pageKey: string, props: RenderPageProps) {
     case 'gallery':
       return <GalleryPage laneIndex={props.laneIndex} onLaneNext={props.onLaneNext} />
     case 'video':
-      return <VideoPage laneIndex={props.laneIndex} isActive={props.isActive} onLaneNext={props.onLaneNext} />
+      return <VideoPage laneIndex={props.laneIndex} isActive={props.isActive} />
     case 'table':
       return <TablePage />
     case 'art':
       return <ArtPage laneIndex={props.laneIndex} isActive={props.isActive} reducedMotion={props.reducedMotion} />
+    case 'thanks':
+      return <ThanksPage />
     default:
       return null
   }
@@ -328,7 +334,15 @@ function renderStoryPage(pageKey: string, props: RenderPageProps) {
 function TitlePage() {
   return (
     <section className="story-page page-title" aria-label="第1页 标题页">
-      <h1>认识AI。</h1>
+      <h1 data-text="与AI共舞">与AI共舞</h1>
+    </section>
+  )
+}
+
+function ThanksPage() {
+  return (
+    <section className="story-page page-thanks" aria-label="第8页 感谢页">
+      <h1 data-text="谢谢">谢谢</h1>
     </section>
   )
 }
@@ -336,6 +350,7 @@ function TitlePage() {
 function TimelinePage({ reducedMotion }: { reducedMotion: boolean }) {
   return (
     <section className={`story-page page-timeline ${reducedMotion ? 'is-reduced' : ''}`} aria-label="第2页 时间轴">
+      <h2 className="timeline-title">认识AI的心路历程</h2>
       <div className="timeline-stage">
         <div className="timeline-line" />
         <ul className="timeline-times" aria-hidden="true">
@@ -530,15 +545,12 @@ function GalleryPage({
 function VideoPage({
   laneIndex,
   isActive,
-  onLaneNext,
 }: {
   laneIndex: number
   isActive: boolean
-  onLaneNext: () => void
 }) {
   const activeIndex = Math.min(laneIndex, Math.max(videoItems.length - 1, 0))
   const activeVideo = videoItems[activeIndex]
-  const canAdvance = activeIndex < videoItems.length - 1
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
   useEffect(() => {
@@ -589,9 +601,6 @@ function VideoPage({
       <p className="video-caption">
         {activeVideo.title} · {activeVideo.note}
       </p>
-      <button type="button" className="video-next" onClick={onLaneNext} disabled={!canAdvance}>
-        下一段
-      </button>
     </section>
   )
 }
@@ -599,7 +608,7 @@ function VideoPage({
 function TablePage() {
   return (
     <section className="story-page page-table" aria-label="第6页 模型对比表">
-      <h2>2026年2月主流AI编程模型。</h2>
+      <h2>AI的性格</h2>
       <div className="table-wrap">
         <table>
           <thead>
