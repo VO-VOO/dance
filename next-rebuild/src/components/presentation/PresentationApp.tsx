@@ -123,11 +123,13 @@ type RenderPageProps = {
   isActive: boolean
   reducedMotion: boolean
   onLaneNext: () => void
+  onCardsBackdropChange: (src: string) => void
 }
 
 export default function PresentationApp() {
   const [state, dispatch] = useReducer(navReducer, undefined, createInitialState)
   const [reducedMotion, setReducedMotion] = useState(false)
+  const [cardsBackdrop, setCardsBackdrop] = useState('')
   const transitionTimerRef = useRef<number | null>(null)
 
   const activePage = pageDefinitions[state.pageIndex]
@@ -135,7 +137,9 @@ export default function PresentationApp() {
 
   const currentGalleryLane = state.laneIndexByPage[3] ?? 0
   const currentGalleryItem = galleryItems[Math.min(currentGalleryLane, Math.max(0, galleryItems.length - 1))]
-  const galleryBackdrop = activePage.key === 'gallery' ? currentGalleryItem?.src ?? '' : ''
+  const pageBackdrop =
+    activePage.key === 'gallery' ? currentGalleryItem?.src ?? '' : activePage.key === 'cards' ? cardsBackdrop : ''
+  const pageBackdropOpacity = activePage.key === 'cards' && pageBackdrop ? '0.34' : '0.22'
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -235,7 +239,8 @@ export default function PresentationApp() {
   }, [state.pageIndex])
 
   const shellStyle = {
-    '--gallery-backdrop': galleryBackdrop ? `url('${galleryBackdrop}')` : 'none',
+    '--page-backdrop': pageBackdrop ? `url('${pageBackdrop}')` : 'none',
+    '--page-backdrop-opacity': pageBackdropOpacity,
   } as CSSProperties
 
   const visibleIndices = useMemo(
@@ -273,6 +278,7 @@ export default function PresentationApp() {
                   laneIndex,
                   isActive,
                   reducedMotion,
+                  onCardsBackdropChange: setCardsBackdrop,
                   onLaneNext: () =>
                     dispatch({
                       type: 'LANE_NEXT',
@@ -305,15 +311,9 @@ function renderStoryPage(pageKey: string, props: RenderPageProps) {
     case 'timeline':
       return <TimelinePage reducedMotion={props.reducedMotion} />
     case 'cards':
-      return <CardsPage reducedMotion={props.reducedMotion} />
+      return <CardsPage reducedMotion={props.reducedMotion} onBackdropChange={props.onCardsBackdropChange} />
     case 'gallery':
-      return (
-        <GalleryPage
-          laneIndex={props.laneIndex}
-          reducedMotion={props.reducedMotion}
-          onLaneNext={props.onLaneNext}
-        />
-      )
+      return <GalleryPage laneIndex={props.laneIndex} onLaneNext={props.onLaneNext} />
     case 'video':
       return <VideoPage laneIndex={props.laneIndex} isActive={props.isActive} onLaneNext={props.onLaneNext} />
     case 'table':
@@ -372,8 +372,15 @@ function TimelinePage({ reducedMotion }: { reducedMotion: boolean }) {
   )
 }
 
-function CardsPage({ reducedMotion }: { reducedMotion: boolean }) {
+function CardsPage({
+  reducedMotion,
+  onBackdropChange,
+}: {
+  reducedMotion: boolean
+  onBackdropChange: (src: string) => void
+}) {
   const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({})
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null)
   const cardMotionTokens = [
     {
       entryX: 'clamp(-520px, -40vw, -220px)',
@@ -405,6 +412,22 @@ function CardsPage({ reducedMotion }: { reducedMotion: boolean }) {
     },
   ] as const
 
+  const activeBackdrop = useMemo(() => {
+    if (!hoveredCardId) return ''
+    return cardItems.find((item) => item.id === hoveredCardId)?.backdrop ?? ''
+  }, [hoveredCardId])
+
+  useEffect(() => {
+    onBackdropChange(activeBackdrop)
+  }, [activeBackdrop, onBackdropChange])
+
+  useEffect(
+    () => () => {
+      onBackdropChange('')
+    },
+    [onBackdropChange],
+  )
+
   return (
     <section className={`story-page page-cards ${reducedMotion ? 'is-reduced' : ''}`} aria-label="第3页 商用领域卡片">
       <h2>AI达到初步商用阶段的领域</h2>
@@ -430,6 +453,12 @@ function CardsPage({ reducedMotion }: { reducedMotion: boolean }) {
                 type="button"
                 className={`flip-card ${isFlipped ? 'is-flipped' : ''}`}
                 onClick={() => setFlippedCards((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                onMouseEnter={() => {
+                  setHoveredCardId(item.id)
+                }}
+                onMouseLeave={() => {
+                  if (hoveredCardId === item.id) setHoveredCardId(null)
+                }}
                 aria-pressed={isFlipped}
               >
                 <span className="card-face card-back">
@@ -452,31 +481,13 @@ function CardsPage({ reducedMotion }: { reducedMotion: boolean }) {
 
 function GalleryPage({
   laneIndex,
-  reducedMotion,
   onLaneNext,
 }: {
   laneIndex: number
-  reducedMotion: boolean
   onLaneNext: () => void
 }) {
   const activeIndex = Math.min(laneIndex, Math.max(galleryItems.length - 1, 0))
   const canAdvance = activeIndex < galleryItems.length - 1
-
-  const previousIndexRef = useRef(activeIndex)
-  const [leavingIndex, setLeavingIndex] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (previousIndexRef.current === activeIndex) return
-
-    setLeavingIndex(previousIndexRef.current)
-    previousIndexRef.current = activeIndex
-
-    const timer = window.setTimeout(() => {
-      setLeavingIndex(null)
-    }, reducedMotion ? 20 : 360)
-
-    return () => window.clearTimeout(timer)
-  }, [activeIndex, reducedMotion])
 
   const activeItem = galleryItems[activeIndex]
   const visibleStack = [
@@ -491,23 +502,16 @@ function GalleryPage({
       <button
         type="button"
         className="gallery-stage"
+        style={
+          {
+            '--gallery-ratio': activeItem.ratio,
+          } as CSSProperties
+        }
         onClick={() => {
           if (canAdvance) onLaneNext()
         }}
         aria-label={canAdvance ? '切换下一张图片' : '已是最后一张图片'}
       >
-        {leavingIndex !== null && leavingIndex !== activeIndex && galleryItems[leavingIndex] && (
-          <figure className="gallery-layer leaving">
-            <Image
-              src={galleryItems[leavingIndex].src}
-              alt={galleryItems[leavingIndex].title}
-              fill
-              priority
-              sizes="(max-width: 1024px) 90vw, 60vw"
-            />
-          </figure>
-        )}
-
         {visibleStack.map((item, depth) => (
           <figure key={item.id} className={`gallery-layer depth-${depth}`}>
             <Image src={item.src} alt={item.title} fill priority={depth === 0} sizes="(max-width: 1024px) 90vw, 60vw" />
@@ -518,7 +522,6 @@ function GalleryPage({
       <div className="gallery-caption" key={activeItem.id}>
         <h3>{activeItem.title}</h3>
         <p>{activeItem.description}</p>
-        <small>{canAdvance ? '按 → 或点击图片切换下一张' : '已到最后一张，可按 ← 返回上一张'}</small>
       </div>
     </section>
   )
@@ -536,20 +539,51 @@ function VideoPage({
   const activeIndex = Math.min(laneIndex, Math.max(videoItems.length - 1, 0))
   const activeVideo = videoItems[activeIndex]
   const canAdvance = activeIndex < videoItems.length - 1
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  useEffect(() => {
+    if (isActive) return
+    videoRef.current?.pause()
+  }, [isActive, activeVideo.id])
+
+  useEffect(() => {
+    if (!isActive) return
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.code !== 'Space' || isEditableTarget(event.target)) return
+      event.preventDefault()
+
+      const video = videoRef.current
+      if (!video) return
+
+      if (video.paused) {
+        void video.play().catch(() => {})
+      } else {
+        video.pause()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isActive, activeVideo.id])
 
   return (
     <section className="story-page page-video" aria-label="第5页 视频页">
       <div className="video-shell">
         <video
+          ref={videoRef}
           key={activeVideo.id}
           className="video-player"
           src={activeVideo.src}
-          autoPlay={isActive}
-          muted
           controls
           loop
           playsInline
           preload="metadata"
+          onPlay={() => {
+            if (!videoRef.current) return
+            if (videoRef.current.muted) videoRef.current.muted = false
+            if (videoRef.current.volume === 0) videoRef.current.volume = 1
+          }}
         />
       </div>
       <p className="video-caption">

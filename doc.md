@@ -1,822 +1,228 @@
-# I SEE YOU 网页完整开发文档
+# I SEE YOU 原稿对齐文档（以 Obsidian 草稿为准）
 
-## 1. 文档目标与范围
+## 1. 文档目的
 
-本文件基于初始设计文稿 /Users/utolaris/Documents/obsidian/I see you.md，定义一套可直接进入工程实施的完整开发规范，覆盖：
+本文件用于把原始草稿 `/Users/utolaris/Documents/obsidian/I see you.md` 的设计逻辑完整落到当前仓库，作为后续开发与验收的唯一基线。
 
-- 页面信息架构与模块边界
-- 视觉系统（色彩、字体、间距、材质）
-- 动效语法（统一时序、曲线、编排规则）
-- 关键交互（上下页、左右页内、卡片翻转、图库堆叠、视频切换、探照灯文本）
-- 代码实现模式与示例（React + TypeScript + CSS Variables）
-- 可访问性、性能护栏与验收标准
+重点目标：
 
-该文档是开发基线，后续视觉资产（图片/视频）可按文档接口直接接入。
+- 每一页像 PPT 一样独立显示（上下翻页）
+- 左右键仅切换当前页内部内容
+- 页面间逻辑完全解耦
+- 参考图进入仓库并可直接在文档中查看
 
 ---
 
-## 2. 全局产品定义
+## 2. 原稿与参考图（已迁移）
 
-### 2.1 交互模型
+原稿引用图已从 Obsidian 复制到仓库目录：`doc-assets/i-see-you/`
 
-- 纵向：`ArrowUp` / `ArrowDown` 切换页面
-- 横向：`ArrowLeft` / `ArrowRight` 切换当前页面内部子内容（lane）
-- 右下角页码指示器常驻
-- 页面结构必须可独立维护（每页一个模块）
-- 支持用户调节文字大小/文字颜色
-
-### 2.2 页面清单
-
-根据设计稿，当前明确页面为：
-
-- Page 1：标题页 `认识AI。`
-- Page 2：时间线页
-- Page 3：商用领域卡片页
-- Page 5：图库堆叠页
-- Page 6：视频页
-- Page 7：模型对比表格页
-- Page 8：艺术文本页（双语探照灯效果）
-
-说明：Page 4 在设计稿中缺失，工程上保留占位，确保后续可无痛扩展。
+- 第2页时间轴：`doc-assets/i-see-you/page-2-timeline.png`
+- 第3页布局参考：`doc-assets/i-see-you/page-3-cards-layout.png`
+- 第3页内容参考：`doc-assets/i-see-you/page-3-cards-content.png`
+- 第4页图片堆叠：`doc-assets/i-see-you/page-4-gallery-stack.png`
+- 第5页视频页：`doc-assets/i-see-you/page-5-video.png`
+- 第7页艺术文本页：`doc-assets/i-see-you/page-7-art-text.png`
 
 ---
 
-## 3. 技术栈与实现模式决策
+## 3. 页序基线（原稿 vs 当前工程）
 
-## 3.1 推荐栈
+原稿定义为 7 页：
 
-- 框架：`React + TypeScript + Vite`
-- 状态：`useReducer`（或 Zustand，二选一）
-- 动画：`GSAP Timeline`（主推荐）
-- 样式：`CSS Variables + 局部模块化 CSS`（可混合 Tailwind）
-- 包管理器：`pnpm`
+1. 标题页
+2. 时间轴
+3. 卡片页
+4. 图片堆叠页
+5. 视频页
+6. 表格页
+7. 艺术文本页
 
-依赖安装命令：
+当前工程存在一个额外占位页（Page 4 Reserved），导致页码偏移：
 
-```bash
-pnpm install
-```
+- 原稿第4页 == 工程 Page 5
+- 原稿第5页 == 工程 Page 6
+- 原稿第6页 == 工程 Page 7
+- 原稿第7页 == 工程 Page 8
 
-选择理由：
-
-- 该项目强调“分段编舞 + 可中断 + 可 seek”，时间线动画比纯声明式更稳
-- 页面独立模块 + 全局壳层结构，便于后续新增页面/替换资产
-- TypeScript 可以约束页面协议，减少后期维护成本
-
-## 3.2 核心架构
-
-- `AppShell`：全局键盘路由、页码、设置面板、背景层、媒体调度
-- `PageHost`：只挂载 `active + prev + next` 三页窗口
-- `PageModule`：每页独立导出渲染与动画接口
-- `MediaScheduler`：根据当前页与下一步预测进行资源预取与取消
+后续修复与验收必须始终以“原稿页序逻辑”对齐，而不是以当前偏移页号理解。
 
 ---
 
-## 4. 目录结构（默认落地蓝图）
+## 4. 全局交互与视觉基线（来自原稿）
 
-```text
-src/
-  app/
-    AppShell.tsx
-    PageHost.tsx
-    PageIndicator.tsx
-    SettingsPanel.tsx
-  engine/
-    nav/
-      navTypes.ts
-      navReducer.ts
-      useKeyboardNav.ts
-      focusPolicy.ts
-    motion/
-      timelineRunner.ts
-      motionTokens.ts
-      useReducedMotion.ts
-    media/
-      assetManifest.ts
-      mediaScheduler.ts
-  ui/
-    backdrop/BlurBackdrop.tsx
-    cards/CardDeck.tsx
-    gallery/ImageStack.tsx
-    video/VideoFrame.tsx
-    text/FlashlightText.tsx
-  pages/
-    page-1/index.tsx
-    page-2/index.tsx
-    page-3/index.tsx
-    page-4/index.tsx
-    page-5/index.tsx
-    page-6/index.tsx
-    page-7/index.tsx
-    page-8/index.tsx
-  styles/
-    tokens.css
-    global.css
-
-image/
-  description.yaml
-  *.png|*.jpg|*.jpeg|*.webp|*.avif
-
-page-8.yaml
-```
+- 上下键：翻页
+- 左右键：切换当前页内部内容
+- 右下角常驻页码
+- 极简风格 + 流动高斯模糊背景（类似 Apple Music）
+- 文本可调（大小、颜色）
+- 响应式适配屏幕尺寸
+- 每页独立模块，便于后续替换素材
 
 ---
 
-## 5. 视觉系统（Design Tokens）
+## 5. 页面级设计规范（严格按原稿）
 
-风格定位：极简、克制、电影感；避免紫色偏置；以中性色和冷色强调为主。
+### 5.1 第1页：标题页
 
-## 5.1 色彩
-
-```css
-:root {
-  --bg-0: #f2f0ed;
-  --bg-1: #ffffff;
-  --bg-2: #e5e0dc;
-
-  --text-0: #1f1b18;
-  --text-1: #6b6661;
-
-  --accent-0: #2c4f6b; /* 主强调 */
-  --accent-1: #b83a32; /* 警示/对比 */
-
-  --line-soft: rgba(31, 27, 24, 0.14);
-  --shadow-soft: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-0: #0d0d0d;
-    --bg-1: #1a1a1a;
-    --bg-2: #262626;
-
-    --text-0: #e6e6e6;
-    --text-1: #a2a2a2;
-
-    --accent-0: #8fbfe0;
-    --accent-1: #e06c66;
-    --line-soft: rgba(230, 230, 230, 0.16);
-  }
-}
-```
-
-## 5.2 字体
-
-- 标题（Serif）：`"Noto Serif SC", "Source Han Serif SC", serif`
-- 正文（Sans）：`"Inter", "PingFang SC", "Hiragino Sans GB", sans-serif`
-- 数据（Mono）：`"JetBrains Mono", "SF Mono", monospace`
-
-```css
-:root {
-  --fz-display: clamp(3rem, 6vw, 5.5rem);
-  --fz-h1: clamp(2rem, 3.8vw, 3.2rem);
-  --fz-h2: clamp(1.5rem, 2.8vw, 2.2rem);
-  --fz-body: clamp(1rem, 1.2vw, 1.125rem);
-  --fz-caption: clamp(0.75rem, 0.8vw, 0.875rem);
-
-  --lh-tight: 1.2;
-  --lh-normal: 1.5;
-  --lh-loose: 1.7;
-}
-```
-
-## 5.3 空间与质感
-
-```css
-:root {
-  --sp-1: 4px;
-  --sp-2: 8px;
-  --sp-3: 12px;
-  --sp-4: 16px;
-  --sp-6: 24px;
-  --sp-8: 32px;
-  --sp-12: 48px;
-  --sp-16: 64px;
-
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-
-  --blur-glass: blur(14px) saturate(130%);
-  --blur-bg-max: 52px;
-}
-```
+- 文案：`认识AI。`
+- 大字居中
+- 不显示其他元素
 
 ---
 
-## 6. 动效语法（Motion Grammar）
+### 5.2 第2页：时间轴页
 
-## 6.1 动效原语
+参考图：
 
-```css
-:root {
-  --dur-fast: 180ms;
-  --dur-base: 360ms;
-  --dur-slow: 640ms;
-  --dur-cinematic: 1100ms;
+![第2页时间轴参考](doc-assets/i-see-you/page-2-timeline.png)
 
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-smooth: cubic-bezier(0.33, 1, 0.68, 1);
-  --ease-linear: linear;
+设计要求：
 
-  --stagger-1: 60ms;
-  --stagger-2: 100ms;
-}
-```
+- 页面只包含一条横向时间轴
+- 关键点是实心圆节点
+- 节点下方时间字体较小
+- 节点上方阶段词更大（如“赞扬AI / 惧怕AI / 怀疑AI / 接纳AI”）
+- 入场动画顺序必须是：
 
-规则：
-
-- 主动效优先使用 `transform` 和 `opacity`
-- 避免动画 `width/height/top/left/margin`
-- 高代价效果（`filter/backdrop-filter`）只用于少数层
-
-## 6.2 reduced-motion 降级
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-```
-
-JS 侧约束：
-
-- 禁用连续漂移动画
-- 卡片发牌改为淡入
-- 探照灯效果自动降级为静态双语切换
+1. 时间轴线从左到右出现
+2. 节点下方文字逐个出现
+3. 节点上方阶段文字逐个出现
 
 ---
 
-## 7. 页面级开发规范
+### 5.3 第3页：商用领域卡片页
 
-## 7.1 Page 1：标题页
+参考图：
 
-目标：极简开场，只保留 `认识AI。`。
+![第3页布局参考](doc-assets/i-see-you/page-3-cards-layout.png)
 
-实现要点：
+![第3页内容参考](doc-assets/i-see-you/page-3-cards-content.png)
 
-- 文本绝对居中
-- 入场为轻微上浮 + 淡入
-- 背景使用低频动态高斯流
+设计要求：
 
-示例：
+- 标题在顶部居中：`AI达到初步商用阶段的领域`
+- 四个卡片以“发牌”方式从底部依次摊开
+- 默认显示背面；点击后翻转显示正面内容
+- 卡片为圆角，尺寸跟随文字内容可读性
 
-```tsx
-export function Page1() {
-  return (
-    <section className="page page-1" aria-label="第1页 认识AI">
-      <h1 className="hero-title">认识AI。</h1>
-    </section>
-  );
-}
-```
+卡片正面文案：
 
-## 7.2 Page 2：时间线页
+1. `AI编程` / `Claude opus 4.5` / `2025年11月24日` / `SWE首次突破80分，agent调用以及意图理解取得突破。`
+2. `AI音乐` / `Suno v5` / `2025年9月23日` / `支持乐器音色克隆，人声分离，AI音乐首次登上热搜。`
+3. `AI绘图` / `Nano banana pro` / `2025年11月20日` / `具备真实世界理解能力的全能绘图模型，面向广告设计。支持4K以多种比例。`
+4. `AI视频` / `Seedance 2` / `2026年2月12日` / `视频，音频，图像三位一体理解能力。首个具备智能分镜的视频模型。`
 
-目标：按顺序展示时间信息。
+---
 
-强制编排顺序：
+### 5.4 第4页：图片堆叠页
 
-1. 时间线从左到右绘制
-2. 时间节点下文案逐个出现
-3. 时间范围描述逐个出现
+参考图：
 
-实现建议：
+![第4页图片堆叠参考](doc-assets/i-see-you/page-4-gallery-stack.png)
 
-- 使用 timeline labels：`line -> nodes -> ranges`
-- 时间节点为实心圆
-- 时间节点文字字号小于上方范围描述
+设计要求：
 
-## 7.3 Page 3：商用领域卡片页
+- 图片来自本地路径
+- 左右键/鼠标触发下一张
+- 默认显示堆叠态：当前图 + 后续 3 张
+- 非当前图必须有高斯模糊遮罩
+- 切换时：当前图快速向左淡出，下一图移动到中位
+- 标题与介绍随图片同步切换
+- 文本淡入淡出节奏需与图片切换一致
+- 文本区在不同长度下始终居中稳定
+- 当前图激活时，页面底部背景应能加载该图，改变整体观感
 
-目标：四张卡片发牌落位，点击翻转显示内容。
+---
 
-实现要点：
+### 5.5 第5页：视频展示页
 
-- 发牌：从底部按顺序上场（stagger）
-- 初始显示卡背
-- 点击或 `Enter/Space` 触发翻转
-- 卡片圆角且尺寸适配文案
+参考图：
 
-3D 卡片关键样式：
+![第5页视频参考](doc-assets/i-see-you/page-5-video.png)
 
-```css
-.deck {
-  perspective: 1000px;
-}
+设计要求：
 
-.card {
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform var(--dur-slow) var(--ease-smooth);
-}
+- 视频 16:9，居中，大面积展示
+- 视频来自本地
+- 右键或右方向键切换下一视频
+- 边框有轻度彩虹荧光（红橙黄绿蓝靛紫）
 
-.card-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-}
+---
 
-.card-back {
-  transform: rotateY(180deg);
-}
-
-.card.is-flipped {
-  transform: rotateY(180deg);
-}
-```
-
-## 7.4 Page 5：图库堆叠页
-
-目标：大图切换 + 后台堆叠 + 高斯遮罩 + 文本同步切换。
-
-硬性规则：
-
-- 渲染窗口仅保留 `active + next3`
-- 非激活图有模糊遮罩
-- 当前图退场（左移+淡出），下一张进中位
-- 标题与描述与图片时间轴同步
-- 文本容器始终居中，长度变化不抖动
-
-数据结构（运行时统一形态）：
-
-```ts
-type GalleryItem = {
-  id: string;
-  imageSrc: string;
-  title: string;
-  description: string;
-};
-```
-
-### 7.4.1 资产来源（自动驱动）
-
-Page 5 的内容由仓库根目录 `image/` 自动驱动：
-
-- 图片目录：`/Users/utolaris/Desktop/speech/image`
-- 描述文件：`/Users/utolaris/Desktop/speech/image/description.yaml`
-
-当新增图片或修改 `description.yaml` 后，页面数据应自动更新（开发模式热更新，构建后随新包生效）。
-
-### 7.4.2 description.yaml 规范
-
-必须使用 **YAML 数组**，不要使用重复顶层键。推荐结构：
-
-```yaml
-- 主标题: 浮世绘
-  介绍文字: 荒海巨蛸袭船图
-  对应文件: 1-荒海巨蛸袭船图.png
-  位置: 1
-
-- 主标题: 专辑封面
-  介绍文字: 喀秋莎
-  对应文件: 2-喀秋莎.png
-  位置: 2
-```
-
-字段约束：
-
-- `主标题`：映射到 `GalleryItem.title`
-- `介绍文字`：映射到 `GalleryItem.description`
-- `对应文件`：支持文件名或绝对路径；运行时按 `basename` 匹配 `image/` 下真实文件
-- `位置`：可选数字，控制排序（升序）
-
-### 7.4.3 自动装配逻辑（实现规范）
-
-实现时必须满足：
-
-1. 读取 `description.yaml` 并解析为数组。
-2. 自动扫描 `image/` 目录内图片。
-3. 用 `description.yaml` 的 `对应文件` 与实际图片按文件名匹配。
-4. 产出 `GalleryItem[]` 并按 `位置` 排序。
-5. `Page5` 只消费该数组，不再硬编码图片数据。
-
-参考实现（示例）：
-
-```ts
-import descriptionRaw from "../../../image/description.yaml?raw";
-import { parse } from "yaml";
-
-type YamlItem = {
-  主标题: string;
-  介绍文字: string;
-  对应文件: string;
-  位置?: number;
-};
-
-const imageModules = import.meta.glob("/image/*.{png,jpg,jpeg,webp,avif}", {
-  eager: true,
-  import: "default",
-}) as Record<string, string>;
-
-const imageByBasename = new Map(
-  Object.entries(imageModules).map(([path, url]) => [path.split("/").pop()!, url]),
-);
-
-function toBasename(value: string) {
-  return value.split("/").pop()?.trim() ?? "";
-}
-
-export function buildGalleryItems(): GalleryItem[] {
-  const rows = (parse(descriptionRaw) ?? []) as YamlItem[];
-
-  return rows
-    .slice()
-    .sort((a, b) => (a.位置 ?? 9999) - (b.位置 ?? 9999))
-    .map((row, index) => {
-      const file = toBasename(row.对应文件);
-      const imageSrc = imageByBasename.get(file);
-      if (!imageSrc) {
-        throw new Error(`[page5] image not found: ${row.对应文件}`);
-      }
-      return {
-        id: `${index}-${file}`,
-        title: row.主标题,
-        description: row.介绍文字,
-        imageSrc,
-      };
-    });
-}
-```
-
-说明：
-
-- 该规范保证“只改 `image/` 与 `description.yaml`，不改 TS 代码”即可让 Page 5 获得新内容。
-- `ImageStack` 仍沿用 `active + next3` 渲染窗口规则，无需改动核心窗口化逻辑。
-
-窗口函数示例：
-
-```ts
-function getVisibleStack(items: GalleryItem[], activeIndex: number) {
-  return [
-    items[activeIndex],
-    items[activeIndex + 1],
-    items[activeIndex + 2],
-    items[activeIndex + 3],
-  ].filter(Boolean);
-}
-```
-
-## 7.5 Page 6：视频页
-
-目标：16:9 大画面，右键切换下一个视频，边框具备彩虹辉光流动。
-
-实现要点：
-
-- `aspect-ratio: 16 / 9`
-- 辉光放在伪元素，避免直接对视频本体做重滤镜
-- 仅 active 视频播放，其他视频暂停并释放引用
-
-### 7.5.1 资产来源与加载顺序（自动驱动）
-
-Page 6 视频由仓库根目录 `video/` 自动驱动：
-
-- 视频目录：`/Users/utolaris/Desktop/speech/video`
-- 支持格式：`*.mp4`（推荐）
-- 加载顺序：按**视频文件名升序**加载（例如 `1.mp4 -> 2.mp4 -> 3.mp4`）
-
-实现约束：
-
-1. 自动扫描 `video/` 目录生成播放列表，不再在代码中硬编码视频数组。
-2. 右键“下一个视频”与左右 lane 切换均基于该排序后的列表。
-3. 新增视频文件后无需改 TS 代码，页面应自动出现新视频。
-4. 文件名建议使用可排序命名（如 `001.mp4`、`002.mp4`），避免 `10.mp4` 在 `2.mp4` 前面。
-
-参考实现（示例）：
-
-```ts
-const videoModules = import.meta.glob('/video/*.mp4', {
-  eager: true,
-  import: 'default',
-}) as Record<string, string>
-
-const videos = Object.entries(videoModules)
-  .map(([path, src]) => ({
-    name: path.split('/').pop() ?? '',
-    src,
-  }))
-  .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
-```
-
-示例：
-
-```css
-.video-frame {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.video-frame::after {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from 0deg,
-    #ff3b30,
-    #ff9500,
-    #ffcc00,
-    #34c759,
-    #007aff,
-    #5856d6,
-    #af52de,
-    #ff3b30
-  );
-  filter: blur(10px);
-  opacity: 0.72;
-  z-index: -1;
-  animation: hue-spin 4s linear infinite;
-}
-
-@keyframes hue-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-```
-
-## 7.6 Page 7：模型对比表格页
-
-目标：极简、居中、圆角表格。
-
-实现要点：
+### 5.6 第6页：模型对比表格页
 
 - 标题：`2026年2月主流AI编程模型。`
-- 表格居中，简洁边线
-- 行内容可按顺序淡入
+- 居中圆角表格
+- 表格内容：
 
-表格字段：
-
-- 模型名
-- 性格/能力描述
-
-## 7.7 Page 8：艺术文本页
-
-目标：黑色高斯背景 + 文本切换 + 双语探照灯显隐。
-
-实现要点：
-
-- 顶部小字：`审美·好奇·迷失·浮躁`
-- 左右切换主艺术文本
-- 中层白字原文
-- 底层红字中文翻译
-- 鼠标接近时以 radial mask 形成“探照灯”切换
-- 底部来源文案随文本变化
-- 任意文本长度均保持居中
-
-### 7.7.1 文本来源（自动驱动）
-
-Page 8 文本由仓库根目录 `page-8.yaml` 自动驱动：
-
-- 文件路径：`/Users/utolaris/Desktop/speech/page-8.yaml`
-- 当新增条目或修改文案后，页面内容应自动更新（开发模式热更新，构建后随新包生效）
-
-### 7.7.2 page-8.yaml 规范
-
-必须使用 **YAML 数组**，不要使用重复顶层键。推荐结构：
-
-```yaml
-- 原文: "Νῦν γὰρ βλέπομεν..."
-  译文: "我们如今仿佛对着镜子观看..."
-  底部注释: "《圣经·新约·哥林多前书》"
-  位置: 1
-
-- 原文: "If you can't tell, does it matter?"
-  译文: "如果不能分辨，那有区别吗？"
-  底部注释: "《西部世界》第一季"
-  位置: 2
-```
-
-字段约束：
-
-- `原文`：映射为上层白字文本
-- `译文`：映射为下层红字文本
-- `底部注释`：映射为底部来源文案
-- `位置`：可选数字，控制条目排序（升序）
-
-### 7.7.3 自动装配逻辑（实现规范）
-
-实现时必须满足：
-
-1. 读取 `page-8.yaml` 并解析为数组。
-2. 产出 `TextPair[]`（或等价类型）并按 `位置` 排序。
-3. Page 8 左右切换基于该数组，不再硬编码文案。
-4. `page-8.yaml` 条目数量变化时，Page 8 的 lanes 与切换上限自动同步。
-
-参考实现（示例）：
-
-```ts
-import { parse } from 'yaml'
-import sourceRaw from '../../../page-8.yaml?raw'
-
-type Page8YamlRow = {
-  原文?: unknown
-  译文?: unknown
-  底部注释?: unknown
-  位置?: unknown
-}
-
-type TextPair = {
-  origin: string
-  translation: string
-  source: string
-}
-
-export function buildPage8Pairs(): TextPair[] {
-  const rows = parse(sourceRaw)
-  if (!Array.isArray(rows)) {
-    throw new Error('[page-8] page-8.yaml must be a YAML array')
-  }
-
-  return (rows as Page8YamlRow[])
-    .slice()
-    .sort((a, b) => Number(a.位置 ?? Number.MAX_SAFE_INTEGER) - Number(b.位置 ?? Number.MAX_SAFE_INTEGER))
-    .map((row) => ({
-      origin: String(row.原文 ?? '').trim(),
-      translation: String(row.译文 ?? '').trim(),
-      source: String(row.底部注释 ?? '').trim(),
-    }))
-}
-```
-
-说明：
-
-- 该规范保证“只改 `page-8.yaml`，不改 TS 代码”即可更新第 8 页文案。
-- 探照灯渲染机制（mask/radial gradient）保持不变，仅文本数据改为外部驱动。
-
-探照灯核心示例：
-
-```css
-.flashlight {
-  --mx: 50%;
-  --my: 50%;
-  --r: 120px;
-  mask-image: radial-gradient(circle var(--r) at var(--mx) var(--my), transparent 0%, black 70%);
-}
-```
+| 模型                     | 特质                                 |
+| ------------------------ | ------------------------------------ |
+| GPT-5.3-Codex High       | 保守、周密思维、安全、服从、高智商   |
+| Claude Opus 4.6 Adaptive | 中立、自主创造力、自适应推理         |
+| Kimi K2.5 Thinking       | 激进、过度自信、逻辑链不稳定         |
+| Gemini 3 Pro Preview     | 艺术化、发散性思维、低遵从性、高情商 |
 
 ---
 
-## 8. 导航状态机与键盘策略
+### 5.7 第7页：艺术文本页
 
-## 8.1 状态定义
+参考图：
 
-```ts
-type NavState = {
-  pageIndex: number;
-  laneIndexByPage: Record<number, number>;
-  isTransitioning: boolean;
-};
-```
+![第7页艺术文本参考](doc-assets/i-see-you/page-7-art-text.png)
 
-## 8.2 事件定义
+设计要求：
 
-```ts
-type NavEvent =
-  | { type: "PAGE_PREV" }
-  | { type: "PAGE_NEXT" }
-  | { type: "LANE_PREV" }
-  | { type: "LANE_NEXT" }
-  | { type: "TRANSITION_START" }
-  | { type: "TRANSITION_END" };
-```
-
-## 8.3 键盘处理模板
-
-```ts
-function onKeyDown(e: KeyboardEvent) {
-  const tag = (e.target as HTMLElement)?.tagName;
-  const inEditable =
-    tag === "INPUT" ||
-    tag === "TEXTAREA" ||
-    (e.target as HTMLElement)?.isContentEditable;
-
-  if (inEditable) return;
-
-  if (e.key === "ArrowUp") {
-    e.preventDefault();
-    dispatch({ type: "PAGE_PREV" });
-  }
-  if (e.key === "ArrowDown") {
-    e.preventDefault();
-    dispatch({ type: "PAGE_NEXT" });
-  }
-  if (e.key === "ArrowLeft") {
-    e.preventDefault();
-    dispatch({ type: "LANE_PREV" });
-  }
-  if (e.key === "ArrowRight") {
-    e.preventDefault();
-    dispatch({ type: "LANE_NEXT" });
-  }
-}
-```
-
-约束：
-
-- 不拦截 `Tab/Shift+Tab`
-- 页面切换后将焦点落到新页面 landmark
-- 避免键盘陷阱
+- 纯黑高斯模糊背景
+- 顶部小标题：`审美·好奇·迷失·浮躁`
+- 中央主体为原文（白色）
+- 鼠标靠近触发探照灯：原文局部消失，底层中文译文（红色）显现
+- 支持多段文本，左右键切换
+- 底部小字来源随文本同步
+- 不同文本长度下始终保持主体与底部来源居中
 
 ---
 
-## 9. 无障碍规范
+## 6. 当前实现偏差检查（2026-02-18）
 
-必做项：
+### 6.1 结论概览
 
-- 交互元素有可见焦点样式
-- 图像有 `alt`
-- 图标按钮有 `aria-label`
-- 页面容器有 `role="region"` + `aria-label`
-- 颜色对比度正文至少 4.5:1
-- 提供“减少动态”与“关闭快捷键”开关
+- 第2页：不符合（核心布局与原稿不一致）
+- 第4页：部分符合（堆叠已做，但切换动线与背景联动未完整）
+- 第7页：部分符合（探照灯逻辑有，但标题与背景风格未完全对齐原稿）
+- 其他页：基本符合
 
----
+### 6.2 逐页偏差
 
-## 10. 性能护栏
+1. 第2页（时间轴）
 
-## 10.1 动画与渲染
+- 当前实现不是“单条主轴+阶段词”视觉结构，和原图偏差明显。
+- 判定：需要按原图重做结构与动效编排。
 
-- 同时重动画元素建议 <= 10
-- 模糊半径移动端建议 <= 20px
-- 不在大面积元素上高频动画 `filter`
-- 使用 `will-change` 时只在动画前后短时开启/移除
+2. 第4页（图片堆叠）
 
-## 10.2 媒体加载
+- 现已实现 `active + next3` 与堆叠模糊。
+- 但“当前图向左快速淡出、下一张进中位”的明确动线还不够强。
+- “当前图驱动全页底部背景图变化”尚未完整落地。
 
-- 图片默认 `loading="lazy"`
-- 进入预加载窗口前不解码
-- 视频默认 `preload="metadata"`
-- 非活动视频 `pause` 并释放资源引用
+3. 第7页（艺术文本）
 
-## 10.3 页面挂载窗口
-
-- 强制仅挂载 `active + prev + next`
-- 图库强制仅渲染 `active + next3`
+- 探照灯双层文字已具备基础机制。
+- 但顶部标题需固定为 `审美·好奇·迷失·浮躁`，背景应更接近“纯黑高斯模糊”语义。
 
 ---
 
-## 11. 开发阶段计划
+## 7. 后续开发优先级（按风险）
 
-## 阶段 A：框架与基础设施
-
-- 创建 AppShell、状态机、键盘路由
-- 完成 design tokens 与全局样式
-- 建立页面模块协议和占位页
-
-## 阶段 B：核心页面实现
-
-- 完成 Page 1 / 2 / 3 的结构与动效
-- 完成 Page 5 图库窗口化
-- 完成 Page 6 视频页与辉光边框
-
-## 阶段 C：高级视觉与收尾
-
-- 完成 Page 7 表格页
-- 完成 Page 8 探照灯双语页
-- 完成 reduced-motion / a11y / 性能调优
+1. 先重做第2页时间轴（结构正确优先于特效细节）。
+2. 再补第4页切换动线与背景联动。
+3. 最后校正第7页标题与背景语义一致性。
 
 ---
 
-## 12. 验收清单（Definition of Done）
+## 8. 验收标准（本轮）
 
-- [ ] 上下/左右键导航行为符合设计稿
-- [ ] 每页独立模块可单独修改与替换
-- [ ] 右下角页码始终正确
-- [ ] Page 2 时间线动效顺序正确
-- [ ] Page 3 发牌与翻转可键盘触发
-- [ ] Page 5 仅渲染 active + next3 且文本同步
-- [ ] Page 6 16:9 视频 + 彩虹辉光边框生效
-- [ ] Page 8 探照灯效果与双语切换可用
-- [ ] reduced-motion 生效且无视觉故障
-- [ ] 无键盘陷阱，焦点路径正确
-- [ ] 移动端无横向滚动，文本可读
-
----
-
-## 13. 外部参考（用于实现校验）
-
-- Reveal.js 配置与导航：`https://revealjs.com/config/`
-- Reveal.js 文档：`https://revealjs.com/`
-- WAI-ARIA Keyboard Interface：`https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/`
-- WAI-ARIA Carousel Pattern：`https://www.w3.org/WAI/ARIA/apg/patterns/carousel/`
-- MDN keydown：`https://developer.mozilla.org/en-US/docs/Web/API/Element/keydown_event`
-- MDN preventDefault：`https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault`
-- MDN clamp：`https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/clamp`
-- MDN CSS transforms：`https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_transforms`
-- MDN backdrop-filter：`https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter`
-- MDN masking：`https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Masking/Introduction`
-- MDN animation performance：`https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Animation_performance_and_frame_rate`
-- web.dev 高性能动画：`https://web.dev/articles/animations-guide`
-
----
-
-## 14. 备注
-
-本文档定义的是可直接编码执行的“开发规范层”，不是视觉稿替代品。后续当具体图片/视频资产确定后，只需按 `AssetManifest` 接口接入，不需要改动整体架构。
+- 文档与原稿页序逻辑一致（7页）
+- 每页均可在本文件找到明确设计要求与参考图
+- 参考图已进入仓库且路径可用
+- 第2页被明确标记为当前不符合并给出修复方向

@@ -11,6 +11,7 @@ export type CardContent = {
   model: string
   date: string
   detail: string
+  backdrop: string
 }
 
 export type GalleryItem = {
@@ -18,6 +19,7 @@ export type GalleryItem = {
   title: string
   description: string
   src: string
+  ratio: number
 }
 
 export type VideoItem = {
@@ -48,6 +50,7 @@ export const cardItems: CardContent[] = [
     model: 'Claude opus 4.5',
     date: '2025年11月24日',
     detail: 'SWE首次突破80分，agent调用以及意图理解取得突破。',
+    backdrop: '/media/cards/programming.png',
   },
   {
     id: 'card-music',
@@ -55,6 +58,7 @@ export const cardItems: CardContent[] = [
     model: 'Suno v5',
     date: '2025年9月23日',
     detail: '支持乐器音色克隆，人声分离，AI音乐首次登上热搜。',
+    backdrop: '/media/cards/music.png',
   },
   {
     id: 'card-image',
@@ -63,6 +67,7 @@ export const cardItems: CardContent[] = [
     date: '2025年11月20日',
     detail:
       '具备真实世界理解能力的全能绘图模型，面向广告设计。支持4K以多种比例。',
+    backdrop: '/media/cards/painting.png',
   },
   {
     id: 'card-video',
@@ -70,6 +75,7 @@ export const cardItems: CardContent[] = [
     model: 'Seedance 2',
     date: '2026年2月12日',
     detail: '视频，音频，图像三位一体理解能力。首个具备智能分镜的视频模型。',
+    backdrop: '/media/cards/video.png',
   },
 ]
 
@@ -79,18 +85,42 @@ export const galleryItems: GalleryItem[] = [
     title: '浮世绘',
     description: '荒海巨蛸袭船图',
     src: '/media/images/1-荒海巨蛸袭船图.png',
+    ratio: 2752 / 1536,
   },
   {
     id: 'gallery-2',
     title: '专辑封面',
     description: '喀秋莎',
     src: '/media/images/2-喀秋莎.png',
+    ratio: 1,
   },
   {
     id: 'gallery-3',
     title: '超现实主义',
     description: '逃脱',
     src: '/media/images/3-逃脱.png',
+    ratio: 2752 / 1536,
+  },
+  {
+    id: 'gallery-4',
+    title: '地图',
+    description: '巴巴罗萨',
+    src: '/media/images/4-巴巴罗萨.png',
+    ratio: 2752 / 1536,
+  },
+  {
+    id: 'gallery-5',
+    title: '写实主义',
+    description: '民国',
+    src: '/media/images/5-民国女人.png',
+    ratio: 2752 / 1536,
+  },
+  {
+    id: 'gallery-6',
+    title: '卡牌',
+    description: '水之呼吸',
+    src: '/media/images/6-水之呼吸.png',
+    ratio: 1536 / 2752,
   },
 ]
 
