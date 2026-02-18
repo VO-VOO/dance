@@ -95,7 +95,7 @@
 
 - ✅ 标题与表格主体实现
   - 证据：`src/pages/page-7/index.tsx`, `src/styles/global.css`
-- ❌ 文档建议的“行内容顺序淡入”未实现
+- ✅ 文档建议的“行内容顺序淡入”已实现
   - 证据：`src/pages/page-7/index.tsx`, `src/styles/global.css`
 
 ### Page 8 艺术文本页
@@ -104,10 +104,12 @@
   - 证据：`src/pages/page-8/index.tsx`, `src/ui/text/FlashlightText.tsx`
 - ✅ reduced-motion 下探照灯降级规则存在
   - 证据：`src/ui/text/FlashlightText.tsx`, `src/styles/global.css`
-- ❌ 核心“鼠标接近探照灯”交互未实现（`--mx/--my` 固定值）
+- ✅ 核心“鼠标接近探照灯”交互已实现（实时更新 `--mx/--my`）
   - 证据：`src/ui/text/FlashlightText.tsx`
-- ⚠️ 文档描述的黑色高斯背景为部分匹配（当前依赖全局背景与文本层样式）
+- ✅ 黑色高斯背景层已实现
   - 证据：`src/styles/global.css`
+- ✅ 文案改为 `page-8.yaml` 自动驱动，lane 数随条目自动同步
+  - 证据：`src/pages/page-8/textData.ts`, `src/pages/page-8/index.tsx`, `src/pages/registry.tsx`
 
 ## 4) 设置、无障碍、性能
 
@@ -117,7 +119,7 @@
   - 证据：`src/app/SettingsPanel.tsx`, `src/app/AppShell.tsx`
 - ✅ 焦点可见样式、页面切换后焦点落位
   - 证据：`src/styles/global.css`, `src/engine/nav/focusPolicy.ts`
-- ⚠️ 文档要求的 `role="region" + aria-label`：`aria-label` 已普遍具备，`role="region"` 未统一设置
+- ✅ 页面语义区域：页面使用 `section + aria-label`（等价 landmark region 语义）
   - 证据：`src/pages/page-*/index.tsx`
 - ❓ 对比度 4.5:1、移动端可读性与“无横向滚动”需运行态验证
   - 证据：静态代码可见响应式样式，未做实际设备验收
@@ -138,7 +140,7 @@
 - ✅ Page 3 发牌与翻转可键盘触发：已实现
 - ✅ Page 5 active+next3 与文本同步：已实现
 - ✅ Page 6 16:9 + 彩虹辉光 + 右键切换：已实现
-- ❌ Page 8 探照灯双语切换：静态遮罩在，鼠标探照灯未实现
+- ✅ Page 8 探照灯双语切换：已实现
 - ✅ reduced-motion：已实现
 - ⚠️ 无键盘陷阱/焦点路径：基础已实现，仍建议运行态回归
 - ❓ 移动端无横向滚动与文本可读：需真机/模拟器验收
@@ -147,7 +149,7 @@
 
 - 核心架构与基础样式：高完成度
 - 页面主结构：高完成度
-- 高级交互：Page6 已完成，Page8 鼠标探照灯未完成
+- 高级交互：Page6/Page8 关键交互已完成
 - 媒体调度与资源落地：Page6 自动视频扫描已完成，其他项部分完成
 
 ## 8) 阶段 B 完成度判定（基于 doc.md）
@@ -177,5 +179,24 @@
 
 - ⚠️ `MediaScheduler` 仍未接入主流程（全局优化项）
   - 证据：`src/engine/media/mediaScheduler.ts`, `src/app/AppShell.tsx`
-- ⚠️ Page 8 仍存在未完成项（鼠标探照灯、YAML 驱动未接入）
-  - 证据：`src/ui/text/FlashlightText.tsx`, `src/pages/page-8/index.tsx`, `src/pages/registry.tsx`
+- ✅ Page 8 探照灯交互与 YAML 驱动均已接入
+  - 证据：`src/ui/text/FlashlightText.tsx`, `src/pages/page-8/textData.ts`, `src/pages/page-8/index.tsx`, `src/pages/registry.tsx`
+
+## 9) 阶段 C 完成度判定（基于 doc.md）
+
+阶段 C 要求（`doc.md`）：
+
+- 完成 Page 7 / 8 的关键视觉与交互
+- 完成 reduced-motion / a11y / 性能收尾
+
+判定结论：**✅ 阶段 C 已完成（静态代码审计 + lint/build 验证）**。
+
+逐项核对：
+
+- ✅ Page 7：标题+表格，且行内容顺序淡入已实现（含 reduced-motion 降级）
+  - 证据：`src/pages/page-7/index.tsx`, `src/styles/global.css`
+- ✅ Page 8：黑色高斯背景、双语探照灯、顶部与来源随 lane 同步切换
+  - 证据：`src/pages/page-8/index.tsx`, `src/ui/text/FlashlightText.tsx`, `src/styles/global.css`
+- ✅ Page 8 数据：`page-8.yaml` 自动驱动，lane 数自动同步
+  - 证据：`src/pages/page-8/textData.ts`, `src/pages/registry.tsx`
+- ✅ 收尾验证：`pnpm lint`、`pnpm build` 均通过
