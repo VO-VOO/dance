@@ -26,6 +26,7 @@ const pageDefinitions: PageDefinition[] = [
   { key: 'gallery', title: '图片堆叠', lanes: galleryItems.length },
   { key: 'video', title: '视频', lanes: videoItems.length },
   { key: 'table', title: '表格', lanes: 1 },
+  { key: 'singularity', title: '奇点临近', lanes: 2 },
   { key: 'art', title: '艺术文本', lanes: artItems.length },
   { key: 'thanks', title: '结束页', lanes: 1 },
 ]
@@ -46,6 +47,17 @@ type NavAction =
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
+}
+
+const SCRAMBLE_POOL = 'אבגדהוזחטיכלמנסעפצקרשתךםןףץ'
+
+function scrambleText(text: string) {
+  return Array.from(text)
+    .map((char) => {
+      if (/[\s，。、“”‘’：；！？,.!?:;·—\-]/.test(char)) return char
+      return SCRAMBLE_POOL[Math.floor(Math.random() * SCRAMBLE_POOL.length)] ?? char
+    })
+    .join('')
 }
 
 function createInitialState(): NavState {
@@ -131,6 +143,7 @@ export default function PresentationApp() {
   const [state, dispatch] = useReducer(navReducer, undefined, createInitialState)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [cardsBackdrop, setCardsBackdrop] = useState('')
+  const [cardsBackdropBlur, setCardsBackdropBlur] = useState(12)
   const transitionTimerRef = useRef<number | null>(null)
 
   const activePage = pageDefinitions[state.pageIndex]
@@ -157,6 +170,25 @@ export default function PresentationApp() {
       transitionTimerRef.current = null
     }
   }, [])
+
+  const onCardsBackdropChange = useCallback(
+    (src: string) => {
+      setCardsBackdrop(src)
+
+      if (!src) {
+        setCardsBackdropBlur(12)
+        return
+      }
+
+      setCardsBackdropBlur(0)
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          setCardsBackdropBlur(12)
+        })
+      })
+    },
+    [],
+  )
 
   const startTransitionLock = useCallback(() => {
     dispatch({ type: 'TRANSITION_START' })
@@ -242,6 +274,8 @@ export default function PresentationApp() {
   const shellStyle = {
     '--page-backdrop': pageBackdrop ? `url('${pageBackdrop}')` : 'none',
     '--page-backdrop-opacity': pageBackdropOpacity,
+    '--page-backdrop-blur': `${activePage.key === 'cards' && cardsBackdrop ? cardsBackdropBlur : 12}px`,
+    '--page-backdrop-blur-duration': activePage.key === 'cards' && cardsBackdrop ? '3000ms' : '340ms',
   } as CSSProperties
 
   const visibleIndices = useMemo(
@@ -251,7 +285,7 @@ export default function PresentationApp() {
 
   return (
     <div
-      className={`presentation-root${reducedMotion ? ' reduced-motion' : ''}${activePage.key === 'art' ? ' page-art-active' : ''}`}
+      className={`presentation-root${reducedMotion ? ' reduced-motion' : ''}${activePage.key === 'art' ? ' page-art-active' : ''}${activePage.key === 'cards' && cardsBackdrop ? ' page-cards-backdrop-active' : ''}`}
       style={shellStyle}
     >
       <a className="skip-link" href="#active-page">
@@ -282,7 +316,7 @@ export default function PresentationApp() {
                   laneIndex,
                   isActive,
                   reducedMotion,
-                  onCardsBackdropChange: setCardsBackdrop,
+                  onCardsBackdropChange,
                   onLaneNext: () =>
                     dispatch({
                       type: 'LANE_NEXT',
@@ -313,7 +347,7 @@ function renderStoryPage(pageKey: string, props: RenderPageProps) {
     case 'title':
       return <TitlePage />
     case 'timeline':
-      return <TimelinePage reducedMotion={props.reducedMotion} />
+      return <TimelinePage reducedMotion={props.reducedMotion} isActive={props.isActive} />
     case 'cards':
       return <CardsPage reducedMotion={props.reducedMotion} onBackdropChange={props.onCardsBackdropChange} />
     case 'gallery':
@@ -322,6 +356,8 @@ function renderStoryPage(pageKey: string, props: RenderPageProps) {
       return <VideoPage laneIndex={props.laneIndex} isActive={props.isActive} />
     case 'table':
       return <TablePage />
+    case 'singularity':
+      return <SingularityPage laneIndex={props.laneIndex} reducedMotion={props.reducedMotion} />
     case 'art':
       return <ArtPage laneIndex={props.laneIndex} isActive={props.isActive} reducedMotion={props.reducedMotion} />
     case 'thanks':
@@ -341,15 +377,56 @@ function TitlePage() {
 
 function ThanksPage() {
   return (
-    <section className="story-page page-thanks" aria-label="第8页 感谢页">
+    <section className="story-page page-thanks" aria-label="第9页 感谢页">
       <h1 data-text="谢谢">谢谢</h1>
     </section>
   )
 }
 
-function TimelinePage({ reducedMotion }: { reducedMotion: boolean }) {
+function TimelinePage({ reducedMotion, isActive }: { reducedMotion: boolean; isActive: boolean }) {
+  const iframeRef = useRef<HTMLIFrameElement | null>(null)
+  const [activeWeather, setActiveWeather] = useState<'sunny' | 'rainy' | 'snowy' | 'sakura' | null>(null)
+
+  const callWeatherApi = useCallback((
+    action: 'startAndSetWeather' | 'setWeather' | 'setPlaying',
+    ...args: Array<string | boolean>
+  ) => {
+    const frame = iframeRef.current
+    if (!frame) return
+    const api = (frame.contentWindow as typeof window & { weatherHostApi?: Record<string, (...params: Array<string | boolean>) => unknown> })
+      ?.weatherHostApi
+    const fn = api?.[action]
+    if (typeof fn === 'function') {
+      fn(...args)
+    } else {
+      frame.contentWindow?.postMessage({ type: action, args }, '*')
+    }
+  }, [])
+
+  useEffect(() => {
+    callWeatherApi('setPlaying', isActive)
+  }, [callWeatherApi, isActive])
+
   return (
     <section className={`story-page page-timeline ${reducedMotion ? 'is-reduced' : ''}`} aria-label="第2页 时间轴">
+      <div
+        className={`timeline-weather-backdrop ${isActive ? 'is-visible' : ''} ${activeWeather ? 'is-engaged' : ''}`}
+        aria-hidden="true"
+      >
+        <iframe
+          ref={iframeRef}
+          src="/weather.html?embed=1"
+          title="Weather Animation Backdrop"
+          loading="eager"
+          tabIndex={-1}
+          onLoad={() => {
+            callWeatherApi('setPlaying', isActive)
+            if (activeWeather) {
+              callWeatherApi('startAndSetWeather', activeWeather)
+            }
+          }}
+        />
+      </div>
       <h2 className="timeline-title">认识AI的心路历程</h2>
       <div className="timeline-stage">
         <div className="timeline-line" />
@@ -375,9 +452,19 @@ function TimelinePage({ reducedMotion }: { reducedMotion: boolean }) {
               '--x': point.x,
               '--delay': `${520 + index * 220}ms`,
             } as CSSProperties
+            const isActiveWeather = activeWeather === point.weather
             return (
               <li key={`phase-${point.phase}`} className="timeline-phase-item" style={style}>
-                {point.phase}
+                <button
+                  type="button"
+                  className={`timeline-phase-button ${isActiveWeather ? 'is-active' : ''}`}
+                  onClick={() => {
+                    setActiveWeather(point.weather)
+                    callWeatherApi('startAndSetWeather', point.weather)
+                  }}
+                >
+                  {point.phase}
+                </button>
               </li>
             )
           })}
@@ -464,28 +551,41 @@ function CardsPage({
                 } as CSSProperties
               }
             >
-              <button
-                type="button"
-                className={`flip-card ${isFlipped ? 'is-flipped' : ''}`}
-                onClick={() => setFlippedCards((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
-                onMouseEnter={() => {
-                  setHoveredCardId(item.id)
+              <div
+                className="card-tilt-shell"
+                onPointerMove={(event) => {
+                  const rect = event.currentTarget.getBoundingClientRect()
+                  const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+                  const y = ((event.clientY - rect.top) / rect.height) * 2 - 1
+                  const rx = -y * 14
+                  const ry = x * 14
+                  event.currentTarget.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`
                 }}
-                onMouseLeave={() => {
+                onPointerLeave={(event) => {
+                  event.currentTarget.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg) translateZ(0)'
                   if (hoveredCardId === item.id) setHoveredCardId(null)
                 }}
-                aria-pressed={isFlipped}
               >
-                <span className="card-face card-back">
-                  <strong>{item.title}</strong>
-                </span>
-                <span className="card-face card-front">
-                  <strong>{item.title}</strong>
-                  <p>{item.model}</p>
-                  <p>{item.date}</p>
-                  <p>{item.detail}</p>
-                </span>
-              </button>
+                <button
+                  type="button"
+                  className={`flip-card ${isFlipped ? 'is-flipped' : ''}`}
+                  onClick={() => setFlippedCards((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                  onMouseEnter={() => {
+                    setHoveredCardId(item.id)
+                  }}
+                  aria-pressed={isFlipped}
+                >
+                  <span className="card-face card-back">
+                    <strong>{item.title}</strong>
+                  </span>
+                  <span className="card-face card-front">
+                    <strong>{item.title}</strong>
+                    <p>{item.model}</p>
+                    <p>{item.date}</p>
+                    <p>{item.detail}</p>
+                  </span>
+                </button>
+              </div>
             </li>
           )
         })}
@@ -588,7 +688,6 @@ function VideoPage({
           className="video-player"
           src={activeVideo.src}
           controls
-          loop
           playsInline
           preload="metadata"
           onPlay={() => {
@@ -606,29 +705,212 @@ function VideoPage({
 }
 
 function TablePage() {
+  const [revealedTraits, setRevealedTraits] = useState<Record<string, boolean>>({})
+  const [scrambleTick, setScrambleTick] = useState(0)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setScrambleTick((value) => value + 1)
+    }, 90)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const scrambledTraitsByModel = useMemo(() => {
+    void scrambleTick
+    return tableRows.reduce<Record<string, string>>((acc, row) => {
+      acc[row.model] = revealedTraits[row.model] ? row.trait : scrambleText(row.trait)
+      return acc
+    }, {})
+  }, [revealedTraits, scrambleTick])
+
   return (
     <section className="story-page page-table" aria-label="第6页 模型对比表">
       <h2>AI的性格</h2>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>模型</th>
-              <th>特质</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableRows.map((row) => (
-              <tr key={row.model}>
-                <td>{row.model}</td>
-                <td>{row.trait}</td>
+      <div
+        className="table-tilt-shell"
+        onPointerMove={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect()
+          const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+          const y = ((event.clientY - rect.top) / rect.height) * 2 - 1
+          const rx = -y * 12
+          const ry = x * 12
+          event.currentTarget.style.transform = `perspective(1300px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`
+        }}
+        onPointerLeave={(event) => {
+          event.currentTarget.style.transform = 'perspective(1300px) rotateX(0deg) rotateY(0deg) translateZ(0)'
+        }}
+      >
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>模型</th>
+                <th>特质</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {tableRows.map((row) => (
+                <tr key={row.model}>
+                  <td>{row.model}</td>
+                  <td className="trait-cell">
+                    {revealedTraits[row.model] ? (
+                      row.trait
+                    ) : (
+                      <button
+                        type="button"
+                        className="trait-scramble-btn"
+                        onClick={() => {
+                          setRevealedTraits((prev) => ({ ...prev, [row.model]: true }))
+                        }}
+                        aria-label={`点击显示 ${row.model} 的原始特质文本`}
+                      >
+                        {scrambledTraitsByModel[row.model]}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   )
+}
+
+function SingularityPage({
+  laneIndex,
+  reducedMotion,
+}: {
+  laneIndex: number
+  reducedMotion: boolean
+}) {
+  const years = Array.from({ length: 10 }, (_, index) => 2026 + index)
+  const xStart = 130
+  const xEnd = 900
+  const xStep = (xEnd - xStart) / (years.length - 1)
+  const isExponential = laneIndex > 0
+
+  const linearPath = 'M130 392 L900 148'
+  const exponentialPath = 'M130 396 C286 390 430 376 560 344 C640 322 710 276 772 198 C830 122 874 58 900 24'
+
+  return (
+    <section className={`story-page page-singularity ${reducedMotion ? 'is-reduced' : ''}`} aria-label="第7页 奇点临近">
+      <h2>奇点临近</h2>
+      <div className={`singularity-chart-shell ${isExponential ? 'is-exponential' : 'is-linear'}`} key={isExponential ? 'exp' : 'line'}>
+        <svg className="singularity-chart" viewBox="0 0 1020 520" role="img" aria-label={isExponential ? '指数增长曲线' : '线性增长曲线'}>
+          <defs>
+            <linearGradient id="singularity-area-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(203, 166, 247, 0.42)" />
+              <stop offset="100%" stopColor="rgba(203, 166, 247, 0.02)" />
+            </linearGradient>
+          </defs>
+
+          <line className="singularity-axis" x1="130" y1="34" x2="130" y2="430" />
+          <line className="singularity-axis" x1="130" y1="430" x2="920" y2="430" />
+
+          <g aria-hidden="true">
+            {years.map((year, index) => {
+              const x = xStart + xStep * index
+              return (
+                <g key={year} transform={`translate(${x} 0)`}>
+                  <line className="singularity-x-tick" x1="0" y1="430" x2="0" y2="440" />
+                  <text className="singularity-x-label" x="0" y="468" textAnchor="middle">
+                    {year}
+                  </text>
+                </g>
+              )
+            })}
+          </g>
+
+          {isExponential ? <line className="singularity-breakpoint" x1="558" y1="64" x2="558" y2="430" /> : null}
+          <path className="singularity-curve" d={isExponential ? exponentialPath : linearPath} />
+          <path className="singularity-area" d={`${isExponential ? exponentialPath : linearPath} L900 430 L130 430 Z`} />
+        </svg>
+      </div>
+    </section>
+  )
+}
+
+const ART_CANVAS_FONT_STACK =
+  "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+
+function wrapCanvasText(text: string, maxWidth: number, ctx: CanvasRenderingContext2D) {
+  const lines: string[] = []
+  const paragraphs = text.split('\n')
+
+  for (const paragraph of paragraphs) {
+    if (!paragraph) {
+      lines.push('')
+      continue
+    }
+
+    const hasSpaces = paragraph.includes(' ')
+    const tokens = hasSpaces ? paragraph.split(' ') : Array.from(paragraph)
+    let current = ''
+
+    for (const token of tokens) {
+      const candidate = hasSpaces ? `${current}${current ? ' ' : ''}${token}` : `${current}${token}`
+      if (ctx.measureText(candidate).width <= maxWidth || !current) {
+        current = candidate
+      } else {
+        lines.push(current)
+        current = token
+      }
+    }
+
+    if (current) lines.push(current)
+  }
+
+  return lines
+}
+
+function drawCanvasTextLayer(
+  canvas: HTMLCanvasElement,
+  text: string,
+  color: string,
+  spotlight: { x: number; y: number; active: boolean },
+  spotlightRadius: number,
+  eraseInSpotlight: boolean,
+) {
+  const width = canvas.clientWidth
+  const height = canvas.clientHeight
+  if (!width || !height) return
+
+  const dpr = window.devicePixelRatio || 1
+  canvas.width = Math.floor(width * dpr)
+  canvas.height = Math.floor(height * dpr)
+
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+  ctx.clearRect(0, 0, width, height)
+  ctx.fillStyle = '#000'
+  ctx.fillRect(0, 0, width, height)
+
+  const fontSize = Math.min(Math.max(width * 0.066, 42), 88)
+  const lineHeight = fontSize * 1.23
+  ctx.font = `700 ${fontSize}px ${ART_CANVAS_FONT_STACK}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = color
+
+  const lines = wrapCanvasText(text, width * 0.84, ctx)
+  const totalHeight = (lines.length - 1) * lineHeight
+  const startY = height / 2 - totalHeight / 2
+  for (let i = 0; i < lines.length; i += 1) {
+    ctx.fillText(lines[i] ?? '', width / 2, startY + i * lineHeight)
+  }
+
+  if (eraseInSpotlight && spotlight.active) {
+    ctx.save()
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.beginPath()
+    ctx.arc((spotlight.x / 100) * width, (spotlight.y / 100) * height, spotlightRadius, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.restore()
+  }
 }
 
 function ArtPage({
@@ -642,7 +924,14 @@ function ArtPage({
 }) {
   const activeIndex = Math.min(laneIndex, Math.max(artItems.length - 1, 0))
   const activeArt = artItems[activeIndex]
+  const [revealedById, setRevealedById] = useState<Record<string, boolean>>({})
   const [spotlight, setSpotlight] = useState({ x: 50, y: 50, active: false })
+  const topCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const bottomCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const stageRef = useRef<HTMLDivElement | null>(null)
+  const isRevealed = Boolean(revealedById[activeArt.id])
+  const displaySource = isRevealed ? activeArt.clickedSource : activeArt.source
+  const clickedColor = activeArt.clickedColor ?? 'rgb(203, 166, 247)'
 
   const spotlightStyle = {
     '--mx': `${spotlight.x}%`,
@@ -650,10 +939,41 @@ function ArtPage({
     '--r': spotlight.active ? (reducedMotion ? '90px' : '130px') : '0px',
   } as CSSProperties
 
+  const renderArtCanvases = useCallback(() => {
+    if (isRevealed) return
+    const topCanvas = topCanvasRef.current
+    const bottomCanvas = bottomCanvasRef.current
+    const stage = stageRef.current
+    if (!topCanvas || !bottomCanvas || !stage) return
+
+    const spotlightRadius = reducedMotion ? 90 : 130
+    drawCanvasTextLayer(bottomCanvas, activeArt.translation, 'rgba(255, 86, 86, 0.9)', spotlight, spotlightRadius, false)
+    drawCanvasTextLayer(topCanvas, activeArt.original, 'rgba(248, 248, 245, 0.95)', spotlight, spotlightRadius, true)
+  }, [activeArt.original, activeArt.translation, isRevealed, reducedMotion, spotlight])
+
+  useEffect(() => {
+    renderArtCanvases()
+  }, [renderArtCanvases])
+
+  useEffect(() => {
+    if (isRevealed) return
+    const stage = stageRef.current
+    if (!stage) return
+    const onResize = () => renderArtCanvases()
+    const observer = new ResizeObserver(onResize)
+    observer.observe(stage)
+    window.addEventListener('resize', onResize)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', onResize)
+    }
+  }, [isRevealed, renderArtCanvases])
+
   return (
-    <section className="story-page page-art" aria-label="第7页 艺术文本页">
+    <section className="story-page page-art" aria-label="第8页 艺术文本页">
       <p className="art-kicker">审美·好奇·迷失·浮躁</p>
       <div
+        ref={stageRef}
         className="art-stage"
         style={spotlightStyle}
         onPointerMove={(event) => {
@@ -666,10 +986,26 @@ function ArtPage({
         onPointerEnter={() => setSpotlight((prev) => ({ ...prev, active: true }))}
         onPointerLeave={() => setSpotlight((prev) => ({ ...prev, active: false }))}
       >
-        <p className="art-text translation">{activeArt.translation}</p>
-        <p className="art-text original">{activeArt.original}</p>
+        <button
+          type="button"
+          className="art-toggle-layer"
+          onClick={() => {
+            setRevealedById((prev) => ({ ...prev, [activeArt.id]: true }))
+          }}
+        >
+          {isRevealed ? (
+            <span className="art-text clicked" style={{ color: clickedColor }}>
+              {activeArt.clickedOriginal}
+            </span>
+          ) : (
+            <span className="art-canvas-stack" aria-hidden="true">
+              <canvas ref={bottomCanvasRef} className="art-canvas art-canvas-bottom" />
+              <canvas ref={topCanvasRef} className="art-canvas art-canvas-top" />
+            </span>
+          )}
+        </button>
       </div>
-      <small className="art-source">{activeArt.source}</small>
+      <small className="art-source">{displaySource}</small>
     </section>
   )
 }

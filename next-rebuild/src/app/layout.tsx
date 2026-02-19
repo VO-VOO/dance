@@ -1,18 +1,6 @@
 import type { Metadata } from 'next'
-import { Cormorant_Garamond, Manrope } from 'next/font/google'
 
 import './globals.css'
-
-const bodyFont = Manrope({
-  subsets: ['latin'],
-  variable: '--font-body',
-})
-
-const headingFont = Cormorant_Garamond({
-  subsets: ['latin'],
-  variable: '--font-heading',
-  weight: ['500', '600', '700'],
-})
 
 export const metadata: Metadata = {
   title: 'I SEE YOU · Rebuild',
@@ -26,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className={`${bodyFont.variable} ${headingFont.variable}`}>{children}</body>
+      <body>{children}</body>
     </html>
   )
 }

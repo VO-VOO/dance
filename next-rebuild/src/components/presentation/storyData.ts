@@ -3,6 +3,7 @@ export type TimelinePoint = {
   phase: string
   x: string
   node: 'none' | 'solid' | 'ring'
+  weather: 'sunny' | 'rainy' | 'snowy' | 'sakura'
 }
 
 export type CardContent = {
@@ -34,13 +35,16 @@ export type ArtItem = {
   original: string
   translation: string
   source: string
+  clickedOriginal: string
+  clickedSource: string
+  clickedColor?: string
 }
 
 export const timelinePoints: TimelinePoint[] = [
-  { time: '2025年2月', phase: '赞扬AI', x: '18%', node: 'ring' },
-  { time: '2025年6月', phase: '惧怕AI', x: '40%', node: 'ring' },
-  { time: '2025年10月', phase: '怀疑AI', x: '70%', node: 'ring' },
-  { time: '2026年2月', phase: '接纳AI', x: '90%', node: 'ring' },
+  { time: '2025年2月', phase: '赞扬AI', x: '18%', node: 'ring', weather: 'sunny' },
+  { time: '2025年6月', phase: '惧怕AI', x: '40%', node: 'ring', weather: 'rainy' },
+  { time: '2025年10月', phase: '怀疑AI', x: '70%', node: 'ring', weather: 'snowy' },
+  { time: '2026年2月', phase: '接纳AI', x: '90%', node: 'ring', weather: 'sakura' },
 ]
 
 export const cardItems: CardContent[] = [
@@ -148,17 +152,21 @@ export const videoItems: VideoItem[] = [
 export const artItems: ArtItem[] = [
   {
     id: 'art-1',
-    original:
-      'Νῦν γὰρ βλέπομεν δι’ ἐσόπτρου ἐν αἰνίγματι, τότε δὲ πρόσωπον πρὸς πρόσωπον· νῦν γινώσκω ἐκ μέρους, τότε δὲ ἐπιγνώσομαι καθὼς καὶ ἐπεγνώσθην.',
-    translation:
-      '我们如今仿佛对着镜子观看，模糊不清，到那时就要面对面了。我如今所知道的有限，到那时就全知道，如同主知道我一样。',
-    source: '《圣经·新约·哥林多前书》',
+    original: "If you can't tell, does it matter?",
+    translation: '如果不能分辨，那有什么区别？',
+    source: '《西部世界》第一季',
+    clickedOriginal: '人之巧乃可与造化者同功乎？',
+    clickedSource: '《列子·汤问》',
+    clickedColor: 'rgb(203, 166, 247)',
   },
   {
     id: 'art-2',
-    original: "If you can't tell, does it matter?",
-    translation: '如果不能分辨，那有区别吗？',
-    source: '《西部世界》第一季',
+    original: '生死去来 棚頭傀儡\n一線断時 落落磊磊',
+    translation: '生死去来 棚头傀儡\n一线断时 落落磊磊',
+    source: '世阿弥《花鏡》',
+    clickedOriginal: '形与神俱，而尽终其天年。',
+    clickedSource: '《黄帝内经·素问·上古天真论》',
+    clickedColor: 'rgb(203, 166, 247)',
   },
 ]
 
