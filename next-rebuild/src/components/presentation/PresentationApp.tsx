@@ -698,7 +698,7 @@ function VideoPage({
         />
       </div>
       <p className="video-caption">
-        {activeVideo.title} · {activeVideo.note}
+        {activeVideo.note ? `${activeVideo.title} · ${activeVideo.note}` : activeVideo.title}
       </p>
     </section>
   )

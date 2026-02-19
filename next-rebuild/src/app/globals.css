@@ -797,13 +797,11 @@ thead {
 .singularity-chart-shell {
   width: min(1040px, 92vw);
   height: min(560px, 64vh);
-  border-radius: 18px;
-  border: 1px solid rgb(255 255 255 / 0.15);
-  background:
-    radial-gradient(circle at 22% 18%, rgb(255 255 255 / 0.06), transparent 48%),
-    linear-gradient(160deg, rgb(13 12 17 / 0.92), rgb(8 8 11 / 0.92));
-  box-shadow: 0 24px 70px rgb(0 0 0 / 0.42);
-  padding: clamp(14px, 2.2vw, 24px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
 }
 
 .singularity-chart {
@@ -849,29 +847,35 @@ thead {
   opacity: 0.38;
 }
 
+.singularity-chart-shell.is-linear .singularity-curve,
 .singularity-chart-shell.is-exponential .singularity-curve {
   stroke-dasharray: 1400;
   stroke-dashoffset: 1400;
   animation:
-    singularity-curve-draw 1450ms cubic-bezier(0.24, 0.78, 0.22, 1) 90ms both,
-    singularity-curve-glow 1800ms ease-in-out 1200ms infinite alternate;
+    singularity-curve-draw 2600ms cubic-bezier(0.2, 0.82, 0.22, 1) 120ms both,
+    singularity-curve-glow 2800ms cubic-bezier(0.3, 0.1, 0.3, 1) 1600ms infinite alternate;
 }
 
+.singularity-chart-shell.is-linear .singularity-area,
 .singularity-chart-shell.is-exponential .singularity-area {
   opacity: 0;
-  animation: singularity-area-rise 1200ms ease 320ms forwards;
+  animation: singularity-area-rise 2300ms cubic-bezier(0.18, 0.86, 0.26, 1) 280ms forwards;
 }
 
 .page-singularity.is-reduced .singularity-breakpoint,
+.page-singularity.is-reduced .singularity-chart-shell.is-linear .singularity-curve,
 .page-singularity.is-reduced .singularity-chart-shell.is-exponential .singularity-curve,
+.page-singularity.is-reduced .singularity-chart-shell.is-linear .singularity-area,
 .page-singularity.is-reduced .singularity-chart-shell.is-exponential .singularity-area {
   animation: none;
 }
 
+.page-singularity.is-reduced .singularity-chart-shell.is-linear .singularity-curve,
 .page-singularity.is-reduced .singularity-chart-shell.is-exponential .singularity-curve {
   stroke-dashoffset: 0;
 }
 
+.page-singularity.is-reduced .singularity-chart-shell.is-linear .singularity-area,
 .page-singularity.is-reduced .singularity-chart-shell.is-exponential .singularity-area {
   opacity: 0.38;
 }
