@@ -373,7 +373,6 @@ select {
   justify-items: center;
   gap: 10px;
   opacity: 0;
-  filter: blur(1.4px);
 }
 
 .timeline-node {
