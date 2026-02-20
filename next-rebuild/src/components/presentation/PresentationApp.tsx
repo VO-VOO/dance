@@ -390,7 +390,7 @@ export default function PresentationApp() {
   const shellStyle = {
     '--page-backdrop': pageBackdrop ? `url('${pageBackdrop}')` : 'none',
     '--page-backdrop-opacity': pageBackdropOpacity,
-    '--page-backdrop-blur': `${pageBackdrop ? 64 : 12}px`,
+    '--page-backdrop-blur': `${pageBackdrop ? 24 : 12}px`,
     '--page-backdrop-blur-duration': '800ms',
   } as CSSProperties
 
