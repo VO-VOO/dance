@@ -314,7 +314,7 @@ select {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgb(0 0 0 / 0.22) 0%, rgb(0 0 0 / 0.42) 100%);
+  display: none;
   z-index: 1;
 }
 
@@ -326,6 +326,13 @@ select {
   font-weight: 900;
   letter-spacing: 0.02em;
   text-shadow: 0 2px 22px rgb(0 0 0 / 0.65);
+  transition: text-shadow 300ms ease, color 300ms ease;
+}
+
+.page-timeline.weather-engaged .timeline-title,
+.page-timeline.weather-engaged .timeline-time-text,
+.page-timeline.weather-engaged .timeline-phase-button {
+  text-shadow: 0 0 12px rgb(255 255 255 / 1), 0 0 24px rgb(255 255 255 / 0.9), 0 0 4px rgb(255 255 255 / 1) !important;
 }
 
 .timeline-stage {

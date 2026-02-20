@@ -390,7 +390,7 @@ export default function PresentationApp() {
   const shellStyle = {
     '--page-backdrop': pageBackdrop ? `url('${pageBackdrop}')` : 'none',
     '--page-backdrop-opacity': pageBackdropOpacity,
-    '--page-backdrop-blur': `${pageBackdrop ? 24 : 12}px`,
+    '--page-backdrop-blur': `${pageBackdrop ? 12 : 12}px`,
     '--page-backdrop-blur-duration': '800ms',
   } as CSSProperties
 
@@ -535,7 +535,7 @@ function TimelinePage({ reducedMotion, isActive }: { reducedMotion: boolean; isA
   }, [callWeatherApi, isActive])
 
   return (
-    <section className={`story-page page-timeline ${reducedMotion ? 'is-reduced' : ''}`} aria-label="第2页 时间轴">
+    <section className={`story-page page-timeline ${reducedMotion ? 'is-reduced' : ''} ${activeWeather ? 'weather-engaged' : ''}`} aria-label="第2页 时间轴">
       <div
         className={`timeline-weather-backdrop ${isActive ? 'is-visible' : ''} ${activeWeather ? 'is-engaged' : ''}`}
         aria-hidden="true"
