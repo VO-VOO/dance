@@ -94,12 +94,12 @@ select {
   position: absolute;
   inset: -12%;
   background-image:
-    linear-gradient(160deg, rgb(0 0 0 / 0.12) 0%, rgb(0 0 0 / 0.36) 100%),
+    linear-gradient(160deg, rgb(0 0 0 / 0.05) 0%, rgb(0 0 0 / 0.15) 100%),
     var(--page-backdrop, none);
   background-size: cover;
   background-position: center;
-  opacity: var(--page-backdrop-opacity, 0.22);
-  filter: blur(var(--page-backdrop-blur, 12px)) saturate(1.4);
+  opacity: var(--page-backdrop-opacity, 0.45);
+  filter: blur(var(--page-backdrop-blur, 12px)) saturate(2.2) brightness(1.15);
   transform: scale(1.1);
   transition:
     opacity 800ms ease,
@@ -558,6 +558,8 @@ select {
 
 .card-face strong {
   font-size: 1.36rem;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.35);
 }
 
 .card-face em {
@@ -721,16 +723,20 @@ select {
   margin: 0;
   font-size: clamp(2.35rem, 4.4vw, 4.1rem);
   letter-spacing: 0.02em;
+  color: #ffffff;
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.35);
 }
 
 .table-wrap {
   width: 100%;
   border-radius: 22px;
-  border: 1px solid var(--line-soft);
+  border: 1px solid rgb(255 255 255 / 0.15);
   overflow: hidden;
   position: relative;
   isolation: isolate;
-  background: color-mix(in srgb, #151515 82%, transparent);
+  background: color-mix(in srgb, #0a0a0c 60%, transparent);
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(24px);
 }
 
 .table-tilt-shell {
@@ -787,10 +793,21 @@ td {
   text-align: center;
   vertical-align: middle;
   padding: 12px 14px;
+  color: #ffffff;
+}
+
+th {
+  color: #e2c2ff;
+  text-shadow: 0 0 18px rgba(226, 194, 255, 0.4);
+  font-weight: 600;
+}
+
+td {
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.3);
 }
 
 thead {
-  background: rgb(255 255 255 / 0.05);
+  background: rgb(255 255 255 / 0.08);
 }
 
 .trait-cell {

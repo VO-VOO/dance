@@ -1107,14 +1107,24 @@ function drawCanvasTextLayer(
   ctx.fillStyle = '#000'
   ctx.fillRect(0, 0, width, height)
 
-  const fontSize = Math.min(Math.max(width * 0.066, 42), 88)
-  const lineHeight = fontSize * 1.23
+  let fontSize = Math.min(Math.max(width * 0.066, 42), 88)
   ctx.font = `700 ${fontSize}px ${ART_CANVAS_FONT_STACK}`
+
+  if (!text.includes('\n')) {
+    const textWidth = ctx.measureText(text).width
+    const targetWidth = width * 0.94
+    if (textWidth > targetWidth) {
+      fontSize = fontSize * (targetWidth / textWidth)
+      ctx.font = `700 ${fontSize}px ${ART_CANVAS_FONT_STACK}`
+    }
+  }
+
+  const lineHeight = fontSize * 1.23
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = color
 
-  const lines = wrapCanvasText(text, width * 0.84, ctx)
+  const lines = wrapCanvasText(text, width * 0.94, ctx)
   const totalHeight = (lines.length - 1) * lineHeight
   const startY = height / 2 - totalHeight / 2
   for (let i = 0; i < lines.length; i += 1) {
