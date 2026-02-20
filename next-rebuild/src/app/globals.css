@@ -13,29 +13,29 @@
     Arial,
     sans-serif;
 
-  --ctp-base: rgb(30, 30, 46);
-  --ctp-mantle: rgb(24, 24, 37);
-  --ctp-crust: rgb(17, 17, 27);
-  --ctp-text: rgb(205, 214, 244);
+  --ctp-base: rgb(239, 241, 245);
+  --ctp-mantle: rgb(230, 233, 239);
+  --ctp-crust: rgb(220, 224, 232);
+  --ctp-text: rgb(76, 79, 105);
 
-  --ctp-mauve: rgb(203, 166, 247);
-  --ctp-blue: rgb(137, 180, 250);
-  --ctp-sapphire: rgb(116, 199, 236);
-  --ctp-green: rgb(166, 227, 161);
-  --ctp-yellow: rgb(249, 226, 175);
-  --ctp-peach: rgb(250, 179, 135);
-  --ctp-red: rgb(243, 139, 168);
+  --ctp-mauve: rgb(136, 57, 239);
+  --ctp-blue: rgb(30, 102, 245);
+  --ctp-sapphire: rgb(32, 159, 181);
+  --ctp-green: rgb(64, 160, 43);
+  --ctp-yellow: rgb(223, 142, 29);
+  --ctp-peach: rgb(254, 100, 11);
+  --ctp-red: rgb(210, 15, 57);
 
   --bg-0: var(--ctp-base);
   --bg-1: var(--ctp-mantle);
-  --line-soft: rgb(205 214 244 / 0.1);
+  --line-soft: rgb(76 79 105 / 0.15);
   --text-main: var(--ctp-text);
-  --text-soft: rgb(205 214 244 / 0.65);
+  --text-soft: rgb(76 79 105 / 0.7);
   --accent: var(--ctp-mauve);
 
   --radius-lg: 24px;
   --radius-md: 16px;
-  --shadow-soft: 0 24px 64px rgb(17 17 27 / 0.85);
+  --shadow-soft: 0 12px 32px rgb(76 79 105 / 0.12);
   --dur-fast: 180ms;
   --dur-base: 340ms;
   --dur-slow: 680ms;
@@ -109,7 +109,7 @@ select {
   position: absolute;
   inset: -12%;
   background-image:
-    linear-gradient(160deg, rgb(30 30 46 / 0.72) 0%, rgb(17 17 27 / 0.88) 100%),
+    linear-gradient(160deg, rgb(239 241 245 / 0.72) 0%, rgb(220 224 232 / 0.88) 100%),
     var(--page-backdrop, none);
   background-size: cover;
   background-position: center;
@@ -232,7 +232,7 @@ select {
   letter-spacing: 0.12em;
   text-wrap: balance;
   color: var(--ctp-mauve);
-  text-shadow: 0 0 64px rgb(203 166 247 / 0.6);
+  text-shadow: 0 4px 16px rgb(136 57 239 / 0.25);
 }
 
 .title-subtitle {
@@ -243,7 +243,7 @@ select {
   color: var(--ctp-sapphire);
   text-transform: uppercase;
   text-indent: 0.5em;
-  text-shadow: 0 0 24px rgb(116 199 236 / 0.4);
+  text-shadow: 0 2px 8px rgb(32 159 181 / 0.2);
 }
 
 .title-lockup::before {
@@ -254,7 +254,7 @@ select {
   transform: translate(-50%, -50%) scale(0.8);
   width: 140vw;
   height: 100vh;
-  background: radial-gradient(circle closest-side, rgb(203 166 247 / 0.15) 0%, transparent 100%);
+  background: radial-gradient(circle closest-side, rgb(136 57 239 / 0.08) 0%, transparent 100%);
   z-index: -1;
   pointer-events: none;
   opacity: 0;
@@ -438,7 +438,7 @@ select {
 
 .timeline-phase-button.is-active {
   color: var(--ctp-green);
-  text-shadow: 0 0 20px rgb(166 227 161 / 0.62);
+  text-shadow: 0 2px 12px rgb(64 160 43 / 0.3);
 }
 
 .page-slot.is-active .timeline-line {
@@ -559,7 +559,7 @@ select {
 .card-face strong {
   font-size: 1.36rem;
   color: var(--ctp-sapphire);
-  text-shadow: 0 0 20px rgb(116 199 236 / 0.35);
+  text-shadow: 0 2px 12px rgb(32 159 181 / 0.25);
 }
 
 .card-face em {
@@ -724,7 +724,7 @@ select {
   font-size: clamp(2.35rem, 4.4vw, 4.1rem);
   letter-spacing: 0.02em;
   color: var(--ctp-text);
-  text-shadow: 0 0 24px rgb(205 214 244 / 0.2);
+  text-shadow: 0 2px 16px rgb(76 79 105 / 0.15);
 }
 
 .table-wrap {
@@ -797,7 +797,7 @@ td {
 
 th {
   color: var(--ctp-peach);
-  text-shadow: 0 0 18px rgb(250 179 135 / 0.2);
+  text-shadow: 0 1px 4px rgb(254 100 11 / 0.15);
   font-weight: 600;
 }
 
@@ -844,7 +844,7 @@ thead {
   font-weight: 900;
   letter-spacing: 0.06em;
   color: var(--ctp-red);
-  text-shadow: 0 0 32px rgb(243 139 168 / 0.4);
+  text-shadow: 0 2px 16px rgb(210 15 57 / 0.25);
 }
 
 .singularity-chart-shell {
@@ -895,13 +895,13 @@ thead {
 }
 
 .singularity-curve.glow-base {
-  filter: drop-shadow(0 0 12px rgb(203 166 247 / 0.6));
+  filter: drop-shadow(0 4px 8px rgb(136 57 239 / 0.3));
 }
 
 .singularity-curve.glow-overlay {
   stroke: var(--ctp-mauve);
   stroke-width: 2;
-  filter: drop-shadow(0 0 4px rgb(203 166 247 / 1));
+  filter: drop-shadow(0 2px 4px rgb(136 57 239 / 0.5));
 }
 
 .singularity-area {
@@ -1059,12 +1059,18 @@ thead {
   border-radius: 999px;
   border: 1px solid var(--line-soft);
   padding: 8px 14px;
-  background: rgb(11 11 11 / 0.82);
+  background: var(--bg-1);
   backdrop-filter: blur(10px);
   display: grid;
   grid-auto-flow: column;
   align-items: center;
   gap: 8px;
+}
+
+.presentation-root.page-art-active .page-indicator {
+  background: rgb(24 24 37 / 0.8);
+  border-color: rgb(205 214 244 / 0.15);
+  color: rgb(205 214 244 / 0.8);
 }
 
 .lane-indicator {
