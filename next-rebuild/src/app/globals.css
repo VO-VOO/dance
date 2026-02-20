@@ -129,11 +129,39 @@ select {
   background-size: cover;
   background-position: center;
   opacity: 0;
-  filter: blur(var(--page-backdrop-blur, 32px)) saturate(1.4);
+  filter: blur(0px) saturate(1.4);
   transform: scale(1.1);
-  transition: opacity 800ms ease, background-image 800ms ease, filter var(--page-backdrop-blur-duration, 800ms) cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: opacity 800ms ease, background-image 800ms ease;
   will-change: opacity, filter, background-image;
   pointer-events: none;
+}
+
+@keyframes backdrop-blur-in-a {
+  0% {
+    filter: blur(0px) saturate(1.4);
+  }
+
+  100% {
+    filter: blur(12px) saturate(1.4);
+  }
+}
+
+@keyframes backdrop-blur-in-b {
+  0% {
+    filter: blur(0px) saturate(1.4);
+  }
+
+  100% {
+    filter: blur(12px) saturate(1.4);
+  }
+}
+
+.backdrop-anim-v1 .global-backdrop::after {
+  animation: backdrop-blur-in-a 3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.backdrop-anim-v2 .global-backdrop::after {
+  animation: backdrop-blur-in-b 3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 @keyframes am-backdrop-breathe {

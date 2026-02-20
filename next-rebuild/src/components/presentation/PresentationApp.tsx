@@ -169,33 +169,21 @@ export default function PresentationApp() {
     activePage.key === 'gallery' ? currentGalleryItem?.src ?? '' : activePage.key === 'cards' ? cardsBackdrop : ''
   const pageBackdropOpacity = activePage.key === 'gallery' ? '0.85' : activePage.key === 'cards' && pageBackdrop ? '0.55' : '0.22'
 
-  const [backdropBlur, setBackdropBlur] = useState('12px')
-  const [backdropDuration, setBackdropDuration] = useState('800ms')
+  // NOTE: 通过 DOM 操作切换动画类，避免在 effect 中 setState 或在渲染中访问 ref
+  const backdropAnimCountRef = useRef(0)
 
   useEffect(() => {
-    let timer1: NodeJS.Timeout
-    let timer2: NodeJS.Timeout
+    const root = document.querySelector('.presentation-root')
+    if (!root) return
 
-    if (!pageBackdrop) {
-      timer1 = setTimeout(() => {
-        setBackdropBlur('12px')
-        setBackdropDuration('800ms')
-      }, 0)
-    } else {
-      timer1 = setTimeout(() => {
-        setBackdropBlur('0px')
-        setBackdropDuration('0ms')
-      }, 0)
+    root.classList.remove('backdrop-anim-v1', 'backdrop-anim-v2')
 
-      timer2 = setTimeout(() => {
-        setBackdropBlur('12px')
-        setBackdropDuration('3s')
-      }, 50)
-    }
-
-    return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
+    if (pageBackdrop) {
+      backdropAnimCountRef.current += 1
+      const variant = (backdropAnimCountRef.current % 2) + 1
+      requestAnimationFrame(() => {
+        root.classList.add(`backdrop-anim-v${variant}`)
+      })
     }
   }, [pageBackdrop])
 
@@ -420,8 +408,6 @@ export default function PresentationApp() {
   const shellStyle = {
     '--page-backdrop': pageBackdrop ? `url('${pageBackdrop}')` : 'none',
     '--page-backdrop-opacity': pageBackdropOpacity,
-    '--page-backdrop-blur': backdropBlur,
-    '--page-backdrop-blur-duration': backdropDuration,
   } as CSSProperties
 
   const visibleIndices = useMemo(
