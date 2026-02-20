@@ -777,7 +777,7 @@ table {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(100deg, transparent 40%, rgb(255 255 255 / 0.1) 45%, rgb(255 255 255 / 0.4) 50%, rgb(255 255 255 / 0.1) 55%, transparent 60%);
+  background: linear-gradient(100deg, transparent 40%, rgb(254 100 11 / 0.15) 45%, rgb(254 100 11 / 0.55) 50%, rgb(254 100 11 / 0.15) 55%, transparent 60%);
   background-size: 200% 100%;
   background-position: 200% 0;
   mix-blend-mode: overlay;
@@ -834,7 +834,7 @@ thead {
   padding: 0;
   margin: 0;
   background: transparent;
-  color: rgb(248 248 245 / 0.9);
+  color: var(--text-soft);
   font: inherit;
   letter-spacing: 0.04em;
   text-align: center;
@@ -843,7 +843,7 @@ thead {
 }
 
 .trait-scramble-btn:hover {
-  color: rgb(255 255 255 / 1);
+  color: var(--ctp-text);
 }
 
 .page-singularity {
