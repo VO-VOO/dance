@@ -12,6 +12,7 @@ export type CardContent = {
   model: string
   date: string
   detail: string
+  cover: string
   backdrop: string
 }
 
@@ -54,7 +55,8 @@ export const cardItems: CardContent[] = [
     model: 'Claude opus 4.5',
     date: '2025年11月24日',
     detail: 'SWE首次突破80分，agent调用以及意图理解取得突破。',
-    backdrop: '/media/cards/programming.png',
+    cover: '/media/cards/anthropic-1x1.png',
+    backdrop: '/media/cards/anthropic-16x9.png',
   },
   {
     id: 'card-music',
@@ -62,7 +64,8 @@ export const cardItems: CardContent[] = [
     model: 'Suno v5',
     date: '2025年9月23日',
     detail: '支持乐器音色克隆，人声分离，AI音乐首次登上热搜。',
-    backdrop: '/media/cards/music.png',
+    cover: '/media/cards/suno-1x1.png',
+    backdrop: '/media/cards/suno-16x9.png',
   },
   {
     id: 'card-image',
@@ -71,7 +74,8 @@ export const cardItems: CardContent[] = [
     date: '2025年11月20日',
     detail:
       '具备真实世界理解能力的全能绘图模型，面向广告设计。支持4K以多种比例。',
-    backdrop: '/media/cards/painting.png',
+    cover: '/media/cards/nanobanana-1x1.png',
+    backdrop: '/media/cards/nanobanana-16x9.png',
   },
   {
     id: 'card-video',
@@ -79,7 +83,8 @@ export const cardItems: CardContent[] = [
     model: 'Seedance 2',
     date: '2026年2月12日',
     detail: '视频，音频，图像三位一体理解能力。首个具备智能分镜的视频模型。',
-    backdrop: '/media/cards/video.png',
+    cover: '/media/cards/seedance-1x1.png',
+    backdrop: '/media/cards/seedance-16x9.png',
   },
 ]
 

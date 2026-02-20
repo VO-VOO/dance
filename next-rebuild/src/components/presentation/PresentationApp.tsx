@@ -735,7 +735,7 @@ function DealCardItem({
           aria-pressed={isFlipped}
         >
           <span className="card-face card-back">
-            <strong>{item.title}</strong>
+            <img src={item.cover} alt={item.title} className="card-cover-img" />
           </span>
           <span className="card-face card-front">
             <strong>{item.title}</strong>
@@ -789,10 +789,12 @@ function CardsPage({
     },
   ] as const
 
+  // NOTE: 翻转卡片时才触发背景切换（而非 hover）
   const activeBackdrop = useMemo(() => {
-    if (!hoveredCardId) return ''
-    return cardItems.find((item) => item.id === hoveredCardId)?.backdrop ?? ''
-  }, [hoveredCardId])
+    const flippedId = Object.entries(flippedCards).find(([, v]) => v)?.[0]
+    if (!flippedId) return ''
+    return cardItems.find((item) => item.id === flippedId)?.backdrop ?? ''
+  }, [flippedCards])
 
   useEffect(() => {
     onBackdropChange(activeBackdrop)
