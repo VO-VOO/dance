@@ -181,9 +181,11 @@ export default function PresentationApp() {
     if (pageBackdrop) {
       backdropAnimCountRef.current += 1
       const variant = (backdropAnimCountRef.current % 2) + 1
-      requestAnimationFrame(() => {
+      // NOTE: 必须等浏览器完成一帧渲染（移除旧类）后再添加新类，否则动画不会重播
+      const timer = setTimeout(() => {
         root.classList.add(`backdrop-anim-v${variant}`)
-      })
+      }, 20)
+      return () => clearTimeout(timer)
     }
   }, [pageBackdrop])
 

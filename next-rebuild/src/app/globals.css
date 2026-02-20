@@ -124,7 +124,7 @@ select {
   position: absolute;
   inset: -12%;
   background-image:
-    linear-gradient(160deg, rgb(239 241 245 / 0.72) 0%, rgb(220 224 232 / 0.88) 100%),
+    linear-gradient(160deg, rgb(239 241 245 / 0.15) 0%, rgb(220 224 232 / 0.35) 100%),
     var(--page-backdrop, none);
   background-size: cover;
   background-position: center;
