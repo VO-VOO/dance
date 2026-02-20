@@ -544,7 +544,7 @@ select {
 
 .flip-card {
   width: 100%;
-  min-height: 280px;
+  aspect-ratio: 1;
   border: 0;
   border-radius: var(--radius-md);
   cursor: pointer;
