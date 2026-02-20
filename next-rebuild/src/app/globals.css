@@ -100,7 +100,18 @@ select {
 }
 
 .global-backdrop::after {
-  content: none;
+  content: '';
+  position: absolute;
+  inset: -12%;
+  background-image: var(--page-backdrop, none);
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  filter: blur(48px) saturate(1.4);
+  transform: scale(1.1);
+  transition: opacity 800ms ease, background-image 800ms ease;
+  will-change: opacity, filter, background-image;
+  pointer-events: none;
 }
 
 @keyframes am-backdrop-breathe {
@@ -118,11 +129,11 @@ select {
 }
 
 .presentation-root.page-art-active .global-backdrop {
-  background: var(--ctp-crust);
+  background: #000;
 }
 
-.presentation-root.page-cards-backdrop-active .global-backdrop {
-  background: var(--bg-0);
+.presentation-root.page-cards-backdrop-active .global-backdrop::after {
+  opacity: 0.15;
 }
 
 .presentation-root.page-art-active .global-backdrop::after {
@@ -130,7 +141,7 @@ select {
 }
 
 .presentation-root.page-art-active {
-  background: var(--ctp-crust);
+  background: #000;
 }
 
 .page-host {
@@ -870,20 +881,20 @@ thead {
 
 .singularity-curve {
   fill: none;
-  stroke: var(--ctp-red);
+  stroke: var(--ctp-mauve);
   stroke-width: 5;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .singularity-curve.glow-base {
-  filter: drop-shadow(0 0 12px rgb(243 139 168 / 0.6));
+  filter: drop-shadow(0 0 12px rgb(203 166 247 / 0.6));
 }
 
 .singularity-curve.glow-overlay {
-  stroke: var(--ctp-red);
+  stroke: var(--ctp-mauve);
   stroke-width: 2;
-  filter: drop-shadow(0 0 4px rgb(243 139 168 / 1));
+  filter: drop-shadow(0 0 4px rgb(203 166 247 / 1));
 }
 
 .singularity-area {
