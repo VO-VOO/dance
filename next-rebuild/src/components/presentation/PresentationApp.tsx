@@ -150,7 +150,6 @@ export default function PresentationApp() {
   const [state, dispatch] = useReducer(navReducer, undefined, createInitialState)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [cardsBackdrop, setCardsBackdrop] = useState('')
-  const [cardsBackdropBlur, setCardsBackdropBlur] = useState(12)
   const transitionTimerRef = useRef<number | null>(null)
   const shuanghuaAudioRef = useRef<HTMLAudioElement | null>(null)
   const ghostdiveAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -256,18 +255,6 @@ export default function PresentationApp() {
   const onCardsBackdropChange = useCallback(
     (src: string) => {
       setCardsBackdrop(src)
-
-      if (!src) {
-        setCardsBackdropBlur(12)
-        return
-      }
-
-      setCardsBackdropBlur(0)
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => {
-          setCardsBackdropBlur(12)
-        })
-      })
     },
     [],
   )
@@ -404,8 +391,8 @@ export default function PresentationApp() {
   const shellStyle = {
     '--page-backdrop': pageBackdrop ? `url('${pageBackdrop}')` : 'none',
     '--page-backdrop-opacity': pageBackdropOpacity,
-    '--page-backdrop-blur': `${activePage.key === 'cards' && cardsBackdrop ? cardsBackdropBlur : 12}px`,
-    '--page-backdrop-blur-duration': activePage.key === 'cards' && cardsBackdrop ? '3000ms' : '340ms',
+    '--page-backdrop-blur': `${pageBackdrop ? 64 : 12}px`,
+    '--page-backdrop-blur-duration': '800ms',
   } as CSSProperties
 
   const visibleIndices = useMemo(
@@ -607,6 +594,134 @@ function TimelinePage({ reducedMotion, isActive }: { reducedMotion: boolean; isA
   )
 }
 
+function useSpringTilt(ref: React.RefObject<HTMLElement | null>, options: { stiffness: number; damping: number; mass: number }) {
+  const targetRef = useRef({ rx: 0, ry: 0, mx: 0.5, my: 0.5 })
+  const currentRef = useRef({ rx: 0, ry: 0, mx: 0.5, my: 0.5 })
+  const velocityRef = useRef({ rx: 0, ry: 0, mx: 0, my: 0 })
+  const rafRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    let lastTime = performance.now()
+    
+    const loop = (time: number) => {
+      const dt = Math.min((time - lastTime) / 1000, 0.064)
+      lastTime = time
+
+      const target = targetRef.current
+      const current = currentRef.current
+      const vel = velocityRef.current
+      
+      const spring = (t: number, c: number, v: number) => {
+        const force = -options.stiffness * (c - t) - options.damping * v
+        const newV = v + (force / options.mass) * dt
+        const newC = c + newV * dt
+        if (Math.abs(newV) < 0.01 && Math.abs(t - newC) < 0.01) {
+          return { c: t, v: 0, updated: t !== c }
+        }
+        return { c: newC, v: newV, updated: true }
+      }
+
+      const rx = spring(target.rx, current.rx, vel.rx)
+      const ry = spring(target.ry, current.ry, vel.ry)
+      const mx = spring(target.mx, current.mx, vel.mx)
+      const my = spring(target.my, current.my, vel.my)
+      
+      current.rx = rx.c; vel.rx = rx.v
+      current.ry = ry.c; vel.ry = ry.v
+      current.mx = mx.c; vel.mx = mx.v
+      current.my = my.c; vel.my = my.v
+
+      const needsUpdate = rx.updated || ry.updated || mx.updated || my.updated
+
+      if (needsUpdate && ref.current) {
+        ref.current.style.transform = `perspective(1200px) rotateX(${current.rx}deg) rotateY(${current.ry}deg) translateZ(0)`
+        ref.current.style.setProperty('--mouse-x', `${current.mx * 100}%`)
+        ref.current.style.setProperty('--mouse-y', `${current.my * 100}%`)
+      }
+
+      rafRef.current = requestAnimationFrame(loop)
+    }
+
+    rafRef.current = requestAnimationFrame(loop)
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+  }, [options.stiffness, options.damping, options.mass, ref])
+
+  return targetRef
+}
+
+function DealCardItem({
+  item,
+  isFlipped,
+  motion,
+  onFlip,
+  onHoverEnter,
+  onHoverLeave,
+}: {
+  item: typeof cardItems[0]
+  isFlipped: boolean
+  motion: { entryX: string; centerX: string; centerY: string; centerR: string; dealDelay: string }
+  onFlip: () => void
+  onHoverEnter: () => void
+  onHoverLeave: () => void
+}) {
+  const tiltRef = useRef<HTMLDivElement>(null)
+  const targetRef = useSpringTilt(tiltRef, { stiffness: 120, damping: 14, mass: 1 })
+
+  return (
+    <li
+      className="deal-slot"
+      style={{
+        '--entry-x': motion.entryX,
+        '--center-x': motion.centerX,
+        '--center-y': motion.centerY,
+        '--center-r': motion.centerR,
+        '--deal-delay': motion.dealDelay,
+      } as CSSProperties}
+    >
+      <div
+        ref={tiltRef}
+        className="card-tilt-shell"
+        onPointerMove={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect()
+          const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+          const y = ((event.clientY - rect.top) / rect.height) * 2 - 1
+          targetRef.current.rx = -y * 12
+          targetRef.current.ry = x * 12
+          targetRef.current.mx = (event.clientX - rect.left) / rect.width
+          targetRef.current.my = (event.clientY - rect.top) / rect.height
+        }}
+        onPointerLeave={() => {
+          targetRef.current.rx = 0
+          targetRef.current.ry = 0
+          targetRef.current.mx = 0.5
+          targetRef.current.my = 0.5
+          onHoverLeave()
+        }}
+      >
+        <button
+          type="button"
+          className={`flip-card ${isFlipped ? 'is-flipped' : ''}`}
+          onClick={onFlip}
+          onMouseEnter={onHoverEnter}
+          aria-pressed={isFlipped}
+        >
+          <span className="card-face card-back">
+            <strong>{item.title}</strong>
+          </span>
+          <span className="card-face card-front">
+            <strong>{item.title}</strong>
+            <p>{item.model}</p>
+            <p>{item.date}</p>
+            <p>{item.detail}</p>
+          </span>
+        </button>
+      </div>
+    </li>
+  )
+}
+
 function CardsPage({
   reducedMotion,
   onBackdropChange,
@@ -671,55 +786,17 @@ function CardsPage({
           const isFlipped = Boolean(flippedCards[item.id])
           const motion = cardMotionTokens[index] ?? cardMotionTokens[0]
           return (
-            <li
+            <DealCardItem
               key={item.id}
-              className="deal-slot"
-              style={
-                {
-                  '--entry-x': motion.entryX,
-                  '--center-x': motion.centerX,
-                  '--center-y': motion.centerY,
-                  '--center-r': motion.centerR,
-                  '--deal-delay': motion.dealDelay,
-                } as CSSProperties
-              }
-            >
-              <div
-                className="card-tilt-shell"
-                onPointerMove={(event) => {
-                  const rect = event.currentTarget.getBoundingClientRect()
-                  const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-                  const y = ((event.clientY - rect.top) / rect.height) * 2 - 1
-                  const rx = -y * 14
-                  const ry = x * 14
-                  event.currentTarget.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`
-                }}
-                onPointerLeave={(event) => {
-                  event.currentTarget.style.transform = 'perspective(1200px) rotateX(0deg) rotateY(0deg) translateZ(0)'
-                  if (hoveredCardId === item.id) setHoveredCardId(null)
-                }}
-              >
-                <button
-                  type="button"
-                  className={`flip-card ${isFlipped ? 'is-flipped' : ''}`}
-                  onClick={() => setFlippedCards((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
-                  onMouseEnter={() => {
-                    setHoveredCardId(item.id)
-                  }}
-                  aria-pressed={isFlipped}
-                >
-                  <span className="card-face card-back">
-                    <strong>{item.title}</strong>
-                  </span>
-                  <span className="card-face card-front">
-                    <strong>{item.title}</strong>
-                    <p>{item.model}</p>
-                    <p>{item.date}</p>
-                    <p>{item.detail}</p>
-                  </span>
-                </button>
-              </div>
-            </li>
+              item={item}
+              isFlipped={isFlipped}
+              motion={motion}
+              onFlip={() => setFlippedCards((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+              onHoverEnter={() => setHoveredCardId(item.id)}
+              onHoverLeave={() => {
+                if (hoveredCardId === item.id) setHoveredCardId(null)
+              }}
+            />
           )
         })}
       </ul>
