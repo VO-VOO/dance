@@ -76,6 +76,11 @@ select {
   color: inherit;
 }
 
+.presentation-root,
+.presentation-root * {
+  cursor: none !important;
+}
+
 .presentation-root {
   position: relative;
   width: 100vw;

@@ -12,6 +12,7 @@ import {
 } from 'react'
 
 import { artItems, cardItems, galleryItems, tableRows, timelinePoints, videoItems } from './storyData'
+import SakuraCursor from './SakuraCursor'
 
 type PageDefinition = {
   key: string
@@ -428,6 +429,7 @@ export default function PresentationApp() {
         跳转到当前页面内容
       </a>
       <div className="global-backdrop" aria-hidden="true" />
+      <SakuraCursor />
 
       <main className="page-host" aria-label="I SEE YOU 八页叙事演示">
         {visibleIndices.map((index) => {
