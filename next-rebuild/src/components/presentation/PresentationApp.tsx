@@ -575,16 +575,18 @@ function TimelinePage({ reducedMotion, isActive }: { reducedMotion: boolean; isA
             const isActiveWeather = activeWeather === point.weather
             return (
               <li key={`phase-${point.phase}`} className="timeline-phase-item" style={style}>
-                <button
-                  type="button"
-                  className={`timeline-phase-button ${isActiveWeather ? 'is-active' : ''}`}
-                  onClick={() => {
-                    setActiveWeather(point.weather)
-                    callWeatherApi('startAndSetWeather', point.weather)
-                  }}
-                >
-                  {point.phase}
-                </button>
+                <div className="timeline-phase-mask">
+                  <button
+                    type="button"
+                    className={`timeline-phase-button ${isActiveWeather ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setActiveWeather(point.weather)
+                      callWeatherApi('startAndSetWeather', point.weather)
+                    }}
+                  >
+                    {point.phase}
+                  </button>
+                </div>
               </li>
             )
           })}
@@ -602,7 +604,7 @@ function useSpringTilt(ref: React.RefObject<HTMLElement | null>, options: { stif
 
   useEffect(() => {
     let lastTime = performance.now()
-    
+
     const loop = (time: number) => {
       const dt = Math.min((time - lastTime) / 1000, 0.064)
       lastTime = time
@@ -610,7 +612,7 @@ function useSpringTilt(ref: React.RefObject<HTMLElement | null>, options: { stif
       const target = targetRef.current
       const current = currentRef.current
       const vel = velocityRef.current
-      
+
       const spring = (t: number, c: number, v: number) => {
         const force = -options.stiffness * (c - t) - options.damping * v
         const newV = v + (force / options.mass) * dt
@@ -625,7 +627,7 @@ function useSpringTilt(ref: React.RefObject<HTMLElement | null>, options: { stif
       const ry = spring(target.ry, current.ry, vel.ry)
       const mx = spring(target.mx, current.mx, vel.mx)
       const my = spring(target.my, current.my, vel.my)
-      
+
       current.rx = rx.c; vel.rx = rx.v
       current.ry = ry.c; vel.ry = ry.v
       current.mx = mx.c; vel.mx = mx.v
@@ -879,7 +881,7 @@ function VideoPage({
       if (!video) return
 
       if (video.paused) {
-        void video.play().catch(() => {})
+        void video.play().catch(() => { })
       } else {
         video.pause()
       }
@@ -1034,7 +1036,8 @@ function SingularityPage({
           </g>
 
           {isExponential ? <line className="singularity-breakpoint" x1="558" y1="64" x2="558" y2="430" /> : null}
-          <path className="singularity-curve" d={isExponential ? exponentialPath : linearPath} />
+          <path className="singularity-curve glow-base" d={isExponential ? exponentialPath : linearPath} />
+          <path className="singularity-curve glow-overlay" d={isExponential ? exponentialPath : linearPath} />
           <path className="singularity-area" d={`${isExponential ? exponentialPath : linearPath} L900 430 L130 430 Z`} />
         </svg>
       </div>
