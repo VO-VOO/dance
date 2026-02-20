@@ -200,11 +200,7 @@ export const tableRows = [
     trait: '中立、自主创造力、自适应推理',
   },
   {
-    model: 'Kimi K2.5 Thinking',
-    trait: '激进、过度自信、逻辑链不稳定',
-  },
-  {
-    model: 'Gemini 3 Pro Preview',
-    trait: '艺术化、发散性思维、低遵从性、高情商',
+    model: 'Gemini 3.1 Pro',
+    trait: '高情商、发散性思维、抽象推理、激进',
   },
 ]

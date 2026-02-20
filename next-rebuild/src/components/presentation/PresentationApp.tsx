@@ -967,8 +967,8 @@ function TablePage() {
               </tr>
             </thead>
             <tbody>
-              {tableRows.map((row) => (
-                <tr key={row.model}>
+              {tableRows.map((row, index) => (
+                <tr key={row.model} style={{ '--row-index': index } as React.CSSProperties}>
                   <td>{row.model}</td>
                   <td className="trait-cell">
                     {revealedTraits[row.model] ? (
@@ -982,7 +982,7 @@ function TablePage() {
                         }}
                         aria-label={`点击显示 ${row.model} 的原始特质文本`}
                       >
-                        {scrambledTraitsByModel[row.model]}
+                        {scrambledTraitsByModel[row.model] || '••••••'}
                       </button>
                     )}
                   </td>

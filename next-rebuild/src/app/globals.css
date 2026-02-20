@@ -754,35 +754,31 @@ table {
 .table-wrap::after {
   content: '';
   position: absolute;
-  inset: -48%;
+  inset: 0;
   z-index: 2;
   pointer-events: none;
-  opacity: 0;
-  mix-blend-mode: screen;
-  background:
-    radial-gradient(circle at 12% 22%, rgb(255 255 255 / 0.96) 0 1.7px, transparent 3.3px),
-    radial-gradient(circle at 20% 82%, rgb(182 224 255 / 0.9) 0 1.8px, transparent 3.5px),
-    radial-gradient(circle at 31% 58%, rgb(255 234 172 / 0.88) 0 1.6px, transparent 3.1px),
-    radial-gradient(circle at 48% 34%, rgb(255 255 255 / 0.92) 0 1.8px, transparent 3.3px),
-    radial-gradient(circle at 56% 74%, rgb(202 222 255 / 0.86) 0 1.6px, transparent 3.1px),
-    radial-gradient(circle at 66% 76%, rgb(255 243 209 / 0.86) 0 1.7px, transparent 3.4px),
-    radial-gradient(circle at 78% 24%, rgb(177 211 255 / 0.9) 0 1.8px, transparent 3.5px),
-    radial-gradient(circle at 88% 62%, rgb(255 255 255 / 0.84) 0 1.5px, transparent 3px),
-    radial-gradient(circle at 94% 16%, rgb(185 224 255 / 0.82) 0 1.4px, transparent 2.8px);
-  background-size: 170px 170px, 210px 210px, 190px 190px, 180px 180px, 220px 220px, 200px 200px, 175px 175px, 230px 230px, 160px 160px;
-  filter: drop-shadow(0 0 12px rgb(255 255 255 / 0.22));
+  background: linear-gradient(100deg, transparent 40%, rgb(255 255 255 / 0.1) 45%, rgb(255 255 255 / 0.4) 50%, rgb(255 255 255 / 0.1) 55%, transparent 60%);
+  background-size: 200% 100%;
+  background-position: 200% 0;
+  mix-blend-mode: overlay;
 }
 
 .page-slot.is-active .page-table .table-wrap {
-  animation: table-form-in 1800ms cubic-bezier(0.18, 0.82, 0.22, 1) 220ms both;
-}
-
-.page-slot.is-active .page-table table {
-  animation: table-sharpen-in 1800ms cubic-bezier(0.16, 0.82, 0.2, 1) 220ms both;
+  animation: table-container-reveal 800ms cubic-bezier(0.16, 0.82, 0.22, 1) 120ms both;
 }
 
 .page-slot.is-active .page-table .table-wrap::after {
-  animation: table-particles-collapse 1800ms cubic-bezier(0.15, 0.82, 0.23, 1) 220ms both;
+  animation: table-scanline-sweep 1600ms cubic-bezier(0.2, 0.8, 0.2, 1) 500ms forwards;
+}
+
+.page-table tbody tr {
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+
+.page-slot.is-active .page-table tbody tr {
+  animation: table-row-stagger 600ms cubic-bezier(0.16, 0.82, 0.32, 1) forwards;
+  animation-delay: calc(320ms + var(--row-index) * 140ms);
 }
 
 th,
@@ -1240,87 +1236,37 @@ thead {
   }
 }
 
-@keyframes table-form-in {
+@keyframes table-container-reveal {
   from {
     opacity: 0;
-    filter: blur(30px) saturate(0.64);
-    transform: translate3d(0, 64px, 0) scale(0.82);
-  }
-
-  40% {
-    opacity: 0.62;
-    filter: blur(18px) saturate(0.78);
-    transform: translate3d(0, 34px, 0) scale(0.9);
-  }
-
-  72% {
-    opacity: 0.9;
-    filter: blur(8px) saturate(0.9);
-    transform: translate3d(0, 10px, 0) scale(0.96);
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(24px);
   }
 
   to {
     opacity: 1;
-    filter: blur(0) saturate(1);
-    transform: translate3d(0, 0, 0) scale(1);
+    clip-path: inset(0);
+    transform: translateY(0);
   }
 }
 
-@keyframes table-sharpen-in {
+@keyframes table-scanline-sweep {
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes table-row-stagger {
   from {
-    opacity: 0.03;
-    filter: blur(24px);
-    transform: translate3d(0, 0, 0) scale(1.1);
-  }
-
-  60% {
-    opacity: 0.62;
-    filter: blur(11px);
-    transform: translate3d(0, 0, 0) scale(1.04);
-  }
-
-  82% {
-    opacity: 0.9;
-    filter: blur(4px);
-    transform: translate3d(0, 0, 0) scale(1.015);
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(16px);
   }
 
   to {
     opacity: 1;
     filter: blur(0);
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes table-particles-collapse {
-  from {
-    opacity: 1;
-    transform: translate3d(-72px, 54px, 0) scale(2.05) rotate(-16deg);
-    filter: blur(0.2px);
-  }
-
-  28% {
-    opacity: 0.95;
-    transform: translate3d(52px, -34px, 0) scale(1.8) rotate(10deg);
-    filter: blur(0.6px);
-  }
-
-  52% {
-    opacity: 0.8;
-    transform: translate3d(-18px, 12px, 0) scale(1.35) rotate(-4deg);
-    filter: blur(1.1px);
-  }
-
-  78% {
-    opacity: 0.5;
-    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
-    filter: blur(2.4px);
-  }
-
-  to {
-    opacity: 0;
-    transform: translate3d(0, 0, 0) scale(0.32) rotate(0deg);
-    filter: blur(6px);
+    transform: translateY(0);
   }
 }
 
