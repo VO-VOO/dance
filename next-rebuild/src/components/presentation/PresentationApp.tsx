@@ -169,6 +169,36 @@ export default function PresentationApp() {
     activePage.key === 'gallery' ? currentGalleryItem?.src ?? '' : activePage.key === 'cards' ? cardsBackdrop : ''
   const pageBackdropOpacity = activePage.key === 'gallery' ? '0.85' : activePage.key === 'cards' && pageBackdrop ? '0.55' : '0.22'
 
+  const [backdropBlur, setBackdropBlur] = useState('12px')
+  const [backdropDuration, setBackdropDuration] = useState('800ms')
+
+  useEffect(() => {
+    let timer1: NodeJS.Timeout
+    let timer2: NodeJS.Timeout
+
+    if (!pageBackdrop) {
+      timer1 = setTimeout(() => {
+        setBackdropBlur('12px')
+        setBackdropDuration('800ms')
+      }, 0)
+    } else {
+      timer1 = setTimeout(() => {
+        setBackdropBlur('0px')
+        setBackdropDuration('0ms')
+      }, 0)
+
+      timer2 = setTimeout(() => {
+        setBackdropBlur('12px')
+        setBackdropDuration('3s')
+      }, 50)
+    }
+
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+    }
+  }, [pageBackdrop])
+
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     const onChange = () => setReducedMotion(mediaQuery.matches)
@@ -390,8 +420,8 @@ export default function PresentationApp() {
   const shellStyle = {
     '--page-backdrop': pageBackdrop ? `url('${pageBackdrop}')` : 'none',
     '--page-backdrop-opacity': pageBackdropOpacity,
-    '--page-backdrop-blur': `${pageBackdrop ? 12 : 12}px`,
-    '--page-backdrop-blur-duration': '800ms',
+    '--page-backdrop-blur': backdropBlur,
+    '--page-backdrop-blur-duration': backdropDuration,
   } as CSSProperties
 
   const visibleIndices = useMemo(

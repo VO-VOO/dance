@@ -131,7 +131,7 @@ select {
   opacity: 0;
   filter: blur(var(--page-backdrop-blur, 32px)) saturate(1.4);
   transform: scale(1.1);
-  transition: opacity 800ms ease, background-image 800ms ease;
+  transition: opacity 800ms ease, background-image 800ms ease, filter var(--page-backdrop-blur-duration, 800ms) cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: opacity, filter, background-image;
   pointer-events: none;
 }
