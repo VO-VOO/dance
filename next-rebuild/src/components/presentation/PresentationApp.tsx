@@ -399,9 +399,11 @@ export default function PresentationApp() {
     [state.pageIndex],
   )
 
+  const isBackdropActive = (activePage.key === 'cards' && cardsBackdrop) || activePage.key === 'gallery'
+
   return (
     <div
-      className={`presentation-root${reducedMotion ? ' reduced-motion' : ''}${activePage.key === 'art' ? ' page-art-active' : ''}${activePage.key === 'cards' && cardsBackdrop ? ' page-cards-backdrop-active' : ''}`}
+      className={`presentation-root${reducedMotion ? ' reduced-motion' : ''}${activePage.key === 'art' ? ' page-art-active' : ''}${isBackdropActive ? ' page-cards-backdrop-active' : ''}`}
       style={shellStyle}
     >
       <a className="skip-link" href="#active-page">
