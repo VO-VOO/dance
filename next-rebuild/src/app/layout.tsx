@@ -3,8 +3,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'I SEE YOU · Rebuild',
-  description: 'Narrative presentation rebuilt with Next.js',
+  title: '与AI共舞',
+  description: '一场关于AI发展与未来的互动叙事演示',
 }
 
 export default function RootLayout({

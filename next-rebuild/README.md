@@ -1,36 +1,179 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 与AI共舞
 
-## Getting Started
+一场关于 AI 发展与未来的**互动叙事演示**，基于 Next.js 16 + TypeScript 构建，采用 Catppuccin Latte 亮色主题，融合了丰富的前端动效与交互设计。
 
-First, run the development server:
+## 技术栈
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **框架**: Next.js 16 (App Router) + TypeScript
+- **构建工具**: Turbopack
+- **配色方案**: Catppuccin Latte
+- **动画**: CSS Keyframes + Spring Physics（弹簧物理） + Canvas 粒子系统
+- **音频**: Web Audio API（双轨背景音乐淡入淡出）
+- **部署**: 纯前端静态导出，无需后端
+
+---
+
+## 页面总览
+
+整个演示由 **9 页**组成，通过键盘方向键（← → ↑ ↓）导航。每页拥有独立的视觉风格、动效系统和交互逻辑。
+
+### 🌸 全局特性
+
+| 特性 | 说明 |
+|------|------|
+| **樱花光标** | 系统光标被替换为 🌸 emoji，鼠标移动时散落贝塞尔曲线绘制的花瓣粒子，根据移速动态调节密度 |
+| **呼吸式背景** | 底层 Latte 配色渐变以 16 秒周期缓慢漂移呼吸，贯穿全部页面 |
+| **动态背板切换** | Page 3/4 支持背景图片实时切换，带 3 秒非线性高斯模糊过渡（从清晰到柔和），使用双 CSS Animation 交替触发 |
+| **页面指示器** | 右下角9个圆点实时指示当前页面位置 |
+| **背景音乐** | 双音轨系统，使用 requestAnimationFrame 实现平滑淡入淡出切换 |
+
+---
+
+### Page 1 · 标题页
+
+**设计理念**: 以极简的大字排版呈现演示主题，建立视觉基调。
+
+- **标题锁定布局** (`title-lockup`): 标题 + 副标题垂直居中，伴有径向渐变光晕背景
+- **进入动画**: 标题从下方淡入并上浮
+- **背景**: 全局呼吸渐变
+
+---
+
+### Page 2 · 时间轴（认识AI的心路历程）
+
+**设计理念**: 以水平时间轴呈现作者与 AI 的四段经历（赞扬→惧怕→怀疑→接纳），每段对应一种天气情绪。
+
+- **时间轴线** (`timeline-line`): 水平进度线带动画延展
+- **时间节点** (`timeline-node`): 4 个圆形节点，对应 2025年2月 ~ 2026年2月，带入场动画
+- **天气系统**: 内嵌 `weather.html` iframe，支持 4 种实时天气动画：
+  - ☀️ 晴天（赞扬AI）
+  - 🌧️ 雨天（惧怕AI）
+  - ❄️ 雪天（怀疑AI）
+  - 🌸 樱花（接纳AI）
+- **天气遮罩**: 激活天气时，原灰色暗化遮罩已移除，保留纯净的动画画面
+- **文字护盾**: 天气激活时，所有文本自动获得 **白色发光阴影** (`text-shadow: 0 0 12px white...`)，确保黑色文字在任何天气背景下都清晰可见
+- **阶段按钮**: 点击可切换对应天气，带 hover 缩放动效
+
+---
+
+### Page 3 · AI 商用领域卡片
+
+**设计理念**: 以四张可翻转的扑克牌风格卡片展示 AI 已达到商用阶段的四大领域。
+
+- **发牌动画** (`card-gather-in` → `card-deal-out`): 卡片先聚拢到中心，再以不同延迟扇形甩出到各自位置
+- **正面（默认可见）**: 1:1 高清封面图片，完全填满圆角卡片
+  - AI编程 → Anthropic
+  - AI音乐 → Suno
+  - AI绘图 → Nano Banana
+  - AI视频 → Seedance
+- **翻转**: 点击卡片后 3D `rotateY(180deg)` 翻转，显示详情文字（模型名、日期、简述）
+- **背景联动**: 翻转卡片时，全局背景切换为该卡片对应的 **16:9 宽屏图片**，伴随非线性模糊过渡动画
+- **弹簧倾斜** (`useSpringTilt`): 鼠标悬停时卡片根据指针位置做 3D 透视倾斜，带物理弹簧阻尼
+- **光泽追踪** (`card-face::before`): 鼠标位置驱动的径向高光叠加，模拟全息卡片反光效果
+
+---
+
+### Page 4 · AI 绘图作品画廊
+
+**设计理念**: 全屏沉浸式画廊，展示 AI 绘图的代表作品。
+
+- **画廊舞台** (`gallery-stage`): 自适应宽高比的图片展示区，支持键盘上下键切换
+- **图层堆叠** (`gallery-layer`): 多张图片以 CSS `transform` 叠放，当前图片置顶
+- **背景融合**: 当前展示图片同时作为页面背景，经过 **非线性模糊过渡** 处理：
+  - 切换瞬间：背景完全清晰（`blur(0px)`）
+  - 3 秒内：沿 `cubic-bezier(0.2, 0.8, 0.2, 1)` 曲线缓慢模糊至 `12px`
+- **文字信息**: 图片标题 + 描述以柔和的文字阴影浮于画面下方
+
+---
+
+### Page 5 · AI 视频展示
+
+**设计理念**: 嵌入式视频播放器，展示 AI 生成的视频内容。
+
+- **视频播放器**: 支持自动播放、暂停、全屏控制
+- **切换按钮** (`video-next`): 带深色半透明背景的「下一首」按钮
+- **注释文字**: 每个视频附带说明文案
+
+---
+
+### Page 6 · 特征对比表格
+
+**设计理念**: 以精致的数据表格呈现 AI 模型的不同性状特征对比。
+
+- **3D 倾斜** (`useSpringTilt`): 整个表格根据鼠标位置做透视倾斜，带弹簧物理效果
+- **扫描线动画** (`table-wrap::after`): 橙金色光条从左到右循环扫过表格表面，模拟科幻扫描效果
+- **希伯来文字谜** (`trait-scramble-btn`): 表格左列的特征名以希伯来文显示，hover 时显示真实中文含义
+- **圆角修复**: 使用 `border-collapse: separate` 解决 Webkit 引擎的 overflow 溢出裁剪问题
+- **Catppuccin 配色**: 表头使用 `ctp-crust`，单元格使用 `ctp-mantle`，与 Latte 主题和谐融合
+
+---
+
+### Page 7 · 奇点临近
+
+**设计理念**: 以强视觉冲击力呈现"技术奇点"的概念。
+
+- **大号标题**: 「The Singularity is Near」主题文字
+- **双车道**: 支持上下键切换两种展示视角
+
+---
+
+### Page 8 · 艺术文本
+
+**设计理念**: 在纯黑背景上以 Canvas 渲染诗意的文本字符，营造沉浸式艺术氛围。
+
+- **纯黑背景**: 该页面使用 `body:has(.page-art-active)` 强制覆盖全局 Latte 主题为纯黑
+- **Canvas 文本渲染**: 使用 HTML Canvas API 逐字符绘制文本
+- **多条目切换**: 多首诗或文艺作品，通过上下键切换，每条包含原文、翻译和出处
+- **点击变色**: 点击后文本切换为不同的颜色和内容
+
+---
+
+### Page 9 · 感谢页
+
+**设计理念**: 简洁的结束页，与标题页首尾呼应。
+
+- **标题锁定**: 「谢 谢」大字 + 「THANK YOU」副标题
+- **径向光晕**: 标题背后的渐变发光背景
+
+---
+
+## 项目结构
+
+```
+next-rebuild/
+├── public/
+│   ├── media/
+│   │   ├── cards/          # Page 3 卡片封面图（1:1）和背景图（16:9）
+│   │   ├── images/         # Page 4 画廊作品
+│   │   └── videos/         # Page 5 视频文件
+│   └── weather.html        # Page 2 天气动画 iframe
+├── src/
+│   ├── app/
+│   │   ├── globals.css     # 全局样式（Catppuccin Latte 主题 + 所有动效）
+│   │   ├── layout.tsx      # 根布局
+│   │   └── page.tsx        # 入口页
+│   └── components/
+│       └── presentation/
+│           ├── PresentationApp.tsx   # 核心组件（导航、状态管理、页面渲染）
+│           ├── SakuraCursor.tsx      # 樱花光标粒子组件
+│           └── storyData.ts         # 数据定义（时间轴、卡片、画廊等）
+└── package.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 本地运行
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+pnpm dev --port 3060
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+浏览器打开 `http://localhost:3060` 即可体验。
 
-## Learn More
+## 操作方式
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| 按键 | 功能 |
+|------|------|
+| `←` / `→` | 翻页 |
+| `↑` / `↓` | 切换当前页面内容（如画廊图片、视频等） |
+| 鼠标点击 | 翻转卡片、切换天气、播放视频等 |
+| 鼠标移动 | 3D 倾斜效果 + 樱花粒子拖尾 |

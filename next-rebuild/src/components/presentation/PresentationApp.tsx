@@ -431,7 +431,7 @@ export default function PresentationApp() {
       <div className="global-backdrop" aria-hidden="true" />
       <SakuraCursor />
 
-      <main className="page-host" aria-label="I SEE YOU 八页叙事演示">
+      <main className="page-host" aria-label="与AI共舞 互动叙事演示">
         {visibleIndices.map((index) => {
           const page = pageDefinitions[index]
           const laneIndex = state.laneIndexByPage[index] ?? 0
