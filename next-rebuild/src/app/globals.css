@@ -582,6 +582,7 @@ select {
 
 .card-back {
   padding: 0;
+  border: none;
 }
 
 .card-cover-img {

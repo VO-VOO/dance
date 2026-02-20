@@ -758,6 +758,7 @@ function CardsPage({
 }) {
   const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({})
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null)
+  const [lastFlippedId, setLastFlippedId] = useState<string | null>(null)
   const cardMotionTokens = [
     {
       entryX: 'clamp(-520px, -40vw, -220px)',
@@ -789,12 +790,11 @@ function CardsPage({
     },
   ] as const
 
-  // NOTE: 翻转卡片时才触发背景切换（而非 hover）
+  // NOTE: 追踪最近翻转的卡片来决定背景图
   const activeBackdrop = useMemo(() => {
-    const flippedId = Object.entries(flippedCards).find(([, v]) => v)?.[0]
-    if (!flippedId) return ''
-    return cardItems.find((item) => item.id === flippedId)?.backdrop ?? ''
-  }, [flippedCards])
+    if (!lastFlippedId || !flippedCards[lastFlippedId]) return ''
+    return cardItems.find((item) => item.id === lastFlippedId)?.backdrop ?? ''
+  }, [flippedCards, lastFlippedId])
 
   useEffect(() => {
     onBackdropChange(activeBackdrop)
@@ -820,7 +820,10 @@ function CardsPage({
               item={item}
               isFlipped={isFlipped}
               motion={motion}
-              onFlip={() => setFlippedCards((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+              onFlip={() => {
+                setFlippedCards((prev) => ({ ...prev, [item.id]: !prev[item.id] }))
+                setLastFlippedId(item.id)
+              }}
               onHoverEnter={() => setHoveredCardId(item.id)}
               onHoverLeave={() => {
                 if (hoveredCardId === item.id) setHoveredCardId(null)
