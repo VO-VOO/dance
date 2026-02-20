@@ -490,7 +490,10 @@ function renderStoryPage(pageKey: string, props: RenderPageProps) {
 function TitlePage() {
   return (
     <section className="story-page page-title" aria-label="第1页 标题页">
-      <h1 data-text="与AI共舞">与AI共舞</h1>
+      <div className="title-lockup">
+        <h1>与AI共舞</h1>
+        <p className="title-subtitle" aria-hidden="true">DANCE WITH AI</p>
+      </div>
     </section>
   )
 }
@@ -498,7 +501,10 @@ function TitlePage() {
 function ThanksPage() {
   return (
     <section className="story-page page-thanks" aria-label="第9页 感谢页">
-      <h1 data-text="谢谢">谢谢</h1>
+      <div className="title-lockup">
+        <h1>谢 谢</h1>
+        <p className="title-subtitle" aria-hidden="true">THANK YOU</p>
+      </div>
     </section>
   )
 }
