@@ -167,7 +167,7 @@ export default function PresentationApp() {
   const currentGalleryItem = galleryItems[Math.min(currentGalleryLane, Math.max(0, galleryItems.length - 1))]
   const pageBackdrop =
     activePage.key === 'gallery' ? currentGalleryItem?.src ?? '' : activePage.key === 'cards' ? cardsBackdrop : ''
-  const pageBackdropOpacity = activePage.key === 'cards' && pageBackdrop ? '0.34' : '0.22'
+  const pageBackdropOpacity = activePage.key === 'gallery' ? '0.85' : activePage.key === 'cards' && pageBackdrop ? '0.55' : '0.22'
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
