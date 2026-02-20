@@ -45,6 +45,13 @@ type NavAction =
   | { type: 'TRANSITION_START' }
   | { type: 'TRANSITION_END' }
 
+type AudioElementRef = { current: HTMLAudioElement | null }
+type NumberValueRef = { current: number | null }
+
+const MUSIC_FADE_DURATION_MS = 10_000
+const MUSIC_START_VOLUME_RATIO = 0.2
+const MUSIC_TARGET_VOLUME = 1
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
@@ -145,9 +152,18 @@ export default function PresentationApp() {
   const [cardsBackdrop, setCardsBackdrop] = useState('')
   const [cardsBackdropBlur, setCardsBackdropBlur] = useState(12)
   const transitionTimerRef = useRef<number | null>(null)
+  const shuanghuaAudioRef = useRef<HTMLAudioElement | null>(null)
+  const ghostdiveAudioRef = useRef<HTMLAudioElement | null>(null)
+  const shuanghuaFadeRafRef = useRef<number | null>(null)
+  const ghostdiveFadeRafRef = useRef<number | null>(null)
+  const previousShuanghuaActiveRef = useRef(false)
+  const previousGhostdiveActiveRef = useRef(false)
+  const pendingUnlockRef = useRef({ shuanghua: false, ghostdive: false })
 
   const activePage = pageDefinitions[state.pageIndex]
   const activeLane = state.laneIndexByPage[state.pageIndex] ?? 0
+  const isShuanghuaActive = state.pageIndex >= 2 && state.pageIndex < 4
+  const isGhostdiveActive = state.pageIndex >= 5
 
   const currentGalleryLane = state.laneIndexByPage[3] ?? 0
   const currentGalleryItem = galleryItems[Math.min(currentGalleryLane, Math.max(0, galleryItems.length - 1))]
@@ -170,6 +186,72 @@ export default function PresentationApp() {
       transitionTimerRef.current = null
     }
   }, [])
+
+  const clearFadeRaf = useCallback((rafRef: NumberValueRef) => {
+    if (rafRef.current !== null) {
+      window.cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+  }, [])
+
+  const fadeInAudio = useCallback(
+    (audio: HTMLAudioElement, rafRef: NumberValueRef, durationMs: number) => {
+      clearFadeRaf(rafRef)
+      const startAt = window.performance.now()
+      const fromVolume = MUSIC_TARGET_VOLUME * MUSIC_START_VOLUME_RATIO
+      const toVolume = MUSIC_TARGET_VOLUME
+
+      audio.volume = fromVolume
+      const tick = (now: number) => {
+        const rawProgress = Math.min((now - startAt) / durationMs, 1)
+        const easedProgress = 1 - (1 - rawProgress) * (1 - rawProgress)
+        audio.volume = fromVolume + (toVolume - fromVolume) * easedProgress
+        if (rawProgress < 1) {
+          rafRef.current = window.requestAnimationFrame(tick)
+        } else {
+          rafRef.current = null
+          audio.volume = toVolume
+        }
+      }
+
+      rafRef.current = window.requestAnimationFrame(tick)
+    },
+    [clearFadeRaf],
+  )
+
+  const stopTrack = useCallback(
+    (audioRef: AudioElementRef, rafRef: NumberValueRef) => {
+      const audio = audioRef.current
+      if (!audio) return
+      clearFadeRaf(rafRef)
+      audio.pause()
+      audio.currentTime = 0
+      audio.volume = MUSIC_TARGET_VOLUME
+    },
+    [clearFadeRaf],
+  )
+
+  const startTrack = useCallback(
+    async (track: 'shuanghua' | 'ghostdive', audioRef: AudioElementRef, rafRef: NumberValueRef) => {
+      const audio = audioRef.current
+      if (!audio) return
+
+      clearFadeRaf(rafRef)
+      audio.loop = true
+      audio.muted = false
+      audio.currentTime = 0
+      audio.volume = MUSIC_TARGET_VOLUME * MUSIC_START_VOLUME_RATIO
+
+      try {
+        await audio.play()
+        pendingUnlockRef.current[track] = false
+        fadeInAudio(audio, rafRef, MUSIC_FADE_DURATION_MS)
+      } catch {
+        pendingUnlockRef.current[track] = true
+      }
+    },
+    [clearFadeRaf, fadeInAudio],
+  )
 
   const onCardsBackdropChange = useCallback(
     (src: string) => {
@@ -255,6 +337,54 @@ export default function PresentationApp() {
   }, [clearTransitionTimer])
 
   useEffect(() => {
+    const wasShuanghuaActive = previousShuanghuaActiveRef.current
+    const wasGhostdiveActive = previousGhostdiveActiveRef.current
+
+    if (isShuanghuaActive && !wasShuanghuaActive) {
+      void startTrack('shuanghua', shuanghuaAudioRef, shuanghuaFadeRafRef)
+    } else if (!isShuanghuaActive && wasShuanghuaActive) {
+      stopTrack(shuanghuaAudioRef, shuanghuaFadeRafRef)
+      pendingUnlockRef.current.shuanghua = false
+    }
+
+    if (isGhostdiveActive && !wasGhostdiveActive) {
+      void startTrack('ghostdive', ghostdiveAudioRef, ghostdiveFadeRafRef)
+    } else if (!isGhostdiveActive && wasGhostdiveActive) {
+      stopTrack(ghostdiveAudioRef, ghostdiveFadeRafRef)
+      pendingUnlockRef.current.ghostdive = false
+    }
+
+    previousShuanghuaActiveRef.current = isShuanghuaActive
+    previousGhostdiveActiveRef.current = isGhostdiveActive
+  }, [isGhostdiveActive, isShuanghuaActive, startTrack, stopTrack])
+
+  useEffect(() => {
+    function retryPendingPlayback() {
+      if (pendingUnlockRef.current.shuanghua && isShuanghuaActive) {
+        void startTrack('shuanghua', shuanghuaAudioRef, shuanghuaFadeRafRef)
+      }
+      if (pendingUnlockRef.current.ghostdive && isGhostdiveActive) {
+        void startTrack('ghostdive', ghostdiveAudioRef, ghostdiveFadeRafRef)
+      }
+    }
+
+    window.addEventListener('pointerdown', retryPendingPlayback, { passive: true })
+    window.addEventListener('keydown', retryPendingPlayback)
+    return () => {
+      window.removeEventListener('pointerdown', retryPendingPlayback)
+      window.removeEventListener('keydown', retryPendingPlayback)
+    }
+  }, [isGhostdiveActive, isShuanghuaActive, startTrack])
+
+  useEffect(
+    () => () => {
+      stopTrack(shuanghuaAudioRef, shuanghuaFadeRafRef)
+      stopTrack(ghostdiveAudioRef, ghostdiveFadeRafRef)
+    },
+    [stopTrack],
+  )
+
+  useEffect(() => {
     const host = document.querySelector<HTMLElement>('.page-host')
     const active = document.querySelector<HTMLElement>(`[data-page-slot='${state.pageIndex}']`)
 
@@ -338,6 +468,9 @@ export default function PresentationApp() {
           页内 {Math.min(activeLane + 1, activePage.lanes)} / {activePage.lanes}
         </small>
       </div>
+
+      <audio ref={shuanghuaAudioRef} src="/media/audio/shuanghua-monologue.mp3" preload="auto" aria-hidden="true" />
+      <audio ref={ghostdiveAudioRef} src="/media/audio/ghostdive.mp3" preload="auto" aria-hidden="true" />
     </div>
   )
 }
