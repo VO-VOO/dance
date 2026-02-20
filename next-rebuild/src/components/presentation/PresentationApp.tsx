@@ -133,8 +133,7 @@ function isEditableTarget(target: EventTarget | null) {
     tag === 'INPUT' ||
     tag === 'TEXTAREA' ||
     tag === 'SELECT' ||
-    tag === 'OPTION' ||
-    tag === 'BUTTON'
+    tag === 'OPTION'
   )
 }
 

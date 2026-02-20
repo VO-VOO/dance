@@ -949,7 +949,7 @@ thead {
 
 .art-stage {
   position: relative;
-  width: min(960px, 92vw);
+  width: min(1180px, 94vw);
   min-height: max(300px, 44vh);
   display: grid;
   place-items: center;
@@ -960,10 +960,10 @@ thead {
 
 .art-text {
   margin: 0;
-  text-wrap: balance;
+  text-wrap: unset;
   white-space: pre-line;
   line-height: 1.45;
-  font-size: clamp(1.5rem, 3.6vw, 3.4rem);
+  font-size: clamp(1.4rem, 3.2vw, 3.3rem);
   position: absolute;
   inset: 0;
   display: grid;
