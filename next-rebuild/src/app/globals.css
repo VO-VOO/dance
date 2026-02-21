@@ -211,21 +211,32 @@ select {
 .page-slot {
   position: absolute;
   inset: 0;
-  transition: transform var(--dur-slow) cubic-bezier(0.22, 0.74, 0.24, 1), opacity var(--dur-base) ease;
+  transition:
+    transform var(--dur-slow) cubic-bezier(0.22, 0.74, 0.24, 1),
+    opacity var(--dur-base) ease,
+    filter var(--dur-slow) cubic-bezier(0.22, 0.74, 0.24, 1);
   opacity: 1;
+  filter: blur(0px);
   z-index: 0;
   outline: none;
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter;
 }
 
 .page-slot.is-active {
   pointer-events: auto;
-  z-index: 2;
 }
 
 .page-slot.is-adjacent {
   pointer-events: none;
   opacity: 0;
+}
+
+.page-slot.is-prev {
+  filter: blur(8px);
+}
+
+.page-slot.is-next {
+  filter: blur(0px);
 }
 
 .page-surface {

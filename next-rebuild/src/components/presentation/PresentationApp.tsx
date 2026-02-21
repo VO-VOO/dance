@@ -437,15 +437,26 @@ export default function PresentationApp() {
           const laneIndex = state.laneIndexByPage[index] ?? 0
           const offset = index - state.pageIndex
           const isActive = offset === 0
+          const isPrev = offset < 0
+          const isNext = offset > 0
+
+          let transformStr = `translateY(${offset * 100}%) scale(1)`
+          if (isPrev) {
+            transformStr = `translateY(-15%) scale(0.92)`
+          } else if (isNext) {
+            transformStr = `translateY(100%) scale(1)`
+          } else {
+            transformStr = `translateY(0%) scale(1)`
+          }
 
           return (
             <section
               key={page.key}
               id={isActive ? 'active-page' : undefined}
-              className={`page-slot ${isActive ? 'is-active' : 'is-adjacent'}`}
+              className={`page-slot ${isActive ? 'is-active' : 'is-adjacent'} ${isPrev ? 'is-prev' : ''} ${isNext ? 'is-next' : ''}`}
               data-page-slot={index}
               data-page-key={page.key}
-              style={{ transform: `translateY(${offset * 100}%)` }}
+              style={{ transform: transformStr }}
               tabIndex={-1}
               aria-hidden={!isActive}
             >
