@@ -534,8 +534,12 @@ function ThanksPage() {
   return (
     <section className="story-page page-thanks" aria-label="第9页 感谢页">
       <div className="title-lockup">
-        <h1 style={{ color: 'var(--ctp-red)' }}>新年快乐</h1>
-        <p className="title-subtitle" aria-hidden="true" style={{ color: 'var(--ctp-red)' }}>HAPPY NEW YEAR</p>
+        <h1 className="writing-text" style={{ color: 'var(--ctp-red)' }}>
+          <span style={{ animationDelay: '0.4s' }}>新</span>
+          <span style={{ animationDelay: '0.9s' }}>年</span>
+          <span style={{ animationDelay: '1.4s' }}>快</span>
+          <span style={{ animationDelay: '1.9s' }}>乐</span>
+        </h1>
       </div>
     </section>
   )

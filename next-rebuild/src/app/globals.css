@@ -307,6 +307,34 @@ select {
   text-shadow: 0 2px 8px rgb(32 159 181 / 0.2);
 }
 
+/* 逐字从左向右展开的伪笔画书写动画 */
+.writing-text span {
+  display: inline-block;
+  opacity: 0;
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+}
+
+.page-slot.is-active .writing-text span {
+  animation: write-char 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes write-char {
+  0% {
+    opacity: 0;
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  }
+
+  1% {
+    opacity: 1;
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  }
+
+  100% {
+    opacity: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
 .title-lockup::before {
   content: '';
   position: absolute;
