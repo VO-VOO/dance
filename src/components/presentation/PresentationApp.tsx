@@ -933,6 +933,20 @@ function GalleryPage({
     galleryItems[activeIndex + 3],
   ].filter(Boolean)
 
+  useEffect(() => {
+    const warmupQueue = [
+      galleryItems[activeIndex],
+      galleryItems[activeIndex + 1],
+      galleryItems[activeIndex + 2],
+    ].filter(Boolean)
+
+    warmupQueue.forEach((item) => {
+      const img = new window.Image()
+      img.decoding = 'async'
+      img.src = item.src
+    })
+  }, [activeIndex])
+
   return (
     <section className="story-page page-gallery" aria-label="第4页 图片堆叠页">
       <button

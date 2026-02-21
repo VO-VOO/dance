@@ -138,8 +138,8 @@ select {
   opacity: 0;
   filter: blur(0px) saturate(1.4);
   transform: scale(1.1);
-  transition: opacity 800ms ease, background-image 800ms ease;
-  will-change: opacity, filter, background-image;
+  transition: opacity 420ms ease;
+  will-change: opacity, filter;
   pointer-events: none;
 }
 
