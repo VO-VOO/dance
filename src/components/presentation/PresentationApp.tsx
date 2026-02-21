@@ -532,26 +532,47 @@ function TitlePage() {
 }
 
 function ThanksPage({ isActive }: { isActive?: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+
   useEffect(() => {
     if (!isActive) return
 
-    const duration = 3000
+    // 动态创建一个覆盖全屏的 canvas，避开容器的 overflow: hidden
+    const canvas = document.createElement('canvas')
+    canvas.style.position = 'fixed'
+    canvas.style.top = '0'
+    canvas.style.left = '0'
+    canvas.style.width = '100vw'
+    canvas.style.height = '100vh'
+    canvas.style.pointerEvents = 'none'
+    canvas.style.zIndex = '9999'
+    document.body.appendChild(canvas)
+    canvasRef.current = canvas
+
+    const myConfetti = confetti.create(canvas, {
+      resize: true,
+      useWorker: true
+    })
+
+    const duration = 2400
     const end = Date.now() + duration
 
     const frame = () => {
-      confetti({
+      myConfetti({
         particleCount: 5,
         angle: 60,
         spread: 55,
         origin: { x: 0, y: 0.8 },
-        colors: ['#ea76cb', '#f5c2e7', '#f2cdcd', '#ffcbcb', '#d20f39']
+        colors: ['#ea76cb', '#f5c2e7', '#f2cdcd', '#ffcbcb', '#d20f39'],
+        zIndex: 9999,
       })
-      confetti({
+      myConfetti({
         particleCount: 5,
         angle: 120,
         spread: 55,
         origin: { x: 1, y: 0.8 },
-        colors: ['#ea76cb', '#f5c2e7', '#f2cdcd', '#ffcbcb', '#d20f39']
+        colors: ['#ea76cb', '#f5c2e7', '#f2cdcd', '#ffcbcb', '#d20f39'],
+        zIndex: 9999,
       })
 
       if (Date.now() < end) {
@@ -559,12 +580,16 @@ function ThanksPage({ isActive }: { isActive?: boolean }) {
       }
     }
 
-    // 稍微延迟一下，等翻页动画快结束时再爆破
     const timer = setTimeout(() => {
       frame()
     }, 400)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      if (canvasRef.current && canvasRef.current.parentNode) {
+        canvasRef.current.parentNode.removeChild(canvasRef.current)
+      }
+    }
   }, [isActive])
 
   return (
