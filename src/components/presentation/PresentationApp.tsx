@@ -54,6 +54,15 @@ const MUSIC_FADE_DURATION_MS = 10_000
 const YOUTUBE_REFERENCE_VOLUME = 0.6
 const MUSIC_START_VOLUME_RATIO = 0.2
 const MUSIC_TARGET_VOLUME = YOUTUBE_REFERENCE_VOLUME
+const WARMUP_IMAGE_SOURCES = Array.from(new Set([
+  ...cardItems.flatMap((item) => [item.cover, item.backdrop]),
+  ...galleryItems.map((item) => item.src),
+]))
+const WARMUP_AUDIO_SOURCES = [
+  '/media/audio/shuanghua-monologue.mp3',
+  '/media/audio/ghostdive.mp3',
+]
+const WARMUP_VIDEO_SOURCES = videoItems.map((item) => item.src)
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
@@ -160,6 +169,16 @@ export default function PresentationApp() {
   const previousShuanghuaActiveRef = useRef(false)
   const previousGhostdiveActiveRef = useRef(false)
   const pendingUnlockRef = useRef({ shuanghua: false, ghostdive: false })
+  const hasWarmedMediaRef = useRef(false)
+  const warmupCacheRef = useRef<{
+    images: HTMLImageElement[]
+    audios: HTMLAudioElement[]
+    videos: HTMLVideoElement[]
+  }>({
+    images: [],
+    audios: [],
+    videos: [],
+  })
 
   const activePage = pageDefinitions[state.pageIndex]
   const activeLane = state.laneIndexByPage[state.pageIndex] ?? 0
@@ -199,6 +218,62 @@ export default function PresentationApp() {
     onChange()
     mediaQuery.addEventListener('change', onChange)
     return () => mediaQuery.removeEventListener('change', onChange)
+  }, [])
+
+  useEffect(() => {
+    if (hasWarmedMediaRef.current) return
+    hasWarmedMediaRef.current = true
+
+    let cancelled = false
+    let idleId: number | null = null
+
+    const warmupAllMedia = () => {
+      if (cancelled) return
+
+      const cache = warmupCacheRef.current
+
+      WARMUP_IMAGE_SOURCES.forEach((src) => {
+        const img = new window.Image()
+        img.decoding = 'async'
+        img.src = src
+        void img.decode().catch(() => { })
+        cache.images.push(img)
+      })
+
+      WARMUP_AUDIO_SOURCES.forEach((src) => {
+        const audio = document.createElement('audio')
+        audio.preload = 'auto'
+        audio.src = src
+        audio.load()
+        cache.audios.push(audio)
+      })
+
+      WARMUP_VIDEO_SOURCES.forEach((src) => {
+        const video = document.createElement('video')
+        video.preload = 'auto'
+        video.src = src
+        video.load()
+        cache.videos.push(video)
+      })
+    }
+
+    const timer = window.setTimeout(() => {
+      if ('requestIdleCallback' in window) {
+        idleId = window.requestIdleCallback(() => {
+          warmupAllMedia()
+        }, { timeout: 1500 })
+      } else {
+        warmupAllMedia()
+      }
+    }, 280)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleId)
+      }
+    }
   }, [])
 
   const clearTransitionTimer = useCallback(() => {
