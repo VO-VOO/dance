@@ -13,6 +13,7 @@ import {
 
 import { artItems, cardItems, galleryItems, tableRows, timelinePoints, videoItems } from './storyData'
 import SakuraCursor from './SakuraCursor'
+import confetti from 'canvas-confetti'
 
 type PageDefinition = {
   key: string
@@ -513,7 +514,7 @@ function renderStoryPage(pageKey: string, props: RenderPageProps) {
     case 'art':
       return <ArtPage laneIndex={props.laneIndex} isActive={props.isActive} reducedMotion={props.reducedMotion} />
     case 'thanks':
-      return <ThanksPage />
+      return <ThanksPage isActive={props.isActive} />
     default:
       return null
   }
@@ -530,7 +531,42 @@ function TitlePage() {
   )
 }
 
-function ThanksPage() {
+function ThanksPage({ isActive }: { isActive?: boolean }) {
+  useEffect(() => {
+    if (!isActive) return
+
+    const duration = 3000
+    const end = Date.now() + duration
+
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.8 },
+        colors: ['#ea76cb', '#f5c2e7', '#f2cdcd', '#ffcbcb', '#d20f39']
+      })
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.8 },
+        colors: ['#ea76cb', '#f5c2e7', '#f2cdcd', '#ffcbcb', '#d20f39']
+      })
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame)
+      }
+    }
+
+    // 稍微延迟一下，等翻页动画快结束时再爆破
+    const timer = setTimeout(() => {
+      frame()
+    }, 400)
+
+    return () => clearTimeout(timer)
+  }, [isActive])
+
   return (
     <section className="story-page page-thanks" aria-label="第9页 感谢页">
       <div className="title-lockup">
