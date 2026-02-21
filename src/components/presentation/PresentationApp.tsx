@@ -51,8 +51,9 @@ type AudioElementRef = { current: HTMLAudioElement | null }
 type NumberValueRef = { current: number | null }
 
 const MUSIC_FADE_DURATION_MS = 10_000
+const YOUTUBE_REFERENCE_VOLUME = 0.6
 const MUSIC_START_VOLUME_RATIO = 0.2
-const MUSIC_TARGET_VOLUME = 1
+const MUSIC_TARGET_VOLUME = YOUTUBE_REFERENCE_VOLUME
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
@@ -999,6 +1000,13 @@ function VideoPage({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [isActive, activeVideo.id])
 
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    // Keep browser-native controls while normalizing startup loudness.
+    video.volume = YOUTUBE_REFERENCE_VOLUME
+  }, [activeVideo.id])
+
   return (
     <section className="story-page page-video" aria-label="第5页 视频页">
       <div className="video-shell">
@@ -1013,7 +1021,7 @@ function VideoPage({
           onPlay={() => {
             if (!videoRef.current) return
             if (videoRef.current.muted) videoRef.current.muted = false
-            if (videoRef.current.volume === 0) videoRef.current.volume = 1
+            if (videoRef.current.volume === 0) videoRef.current.volume = YOUTUBE_REFERENCE_VOLUME
           }}
         />
       </div>
