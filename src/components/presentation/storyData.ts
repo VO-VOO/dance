@@ -39,6 +39,8 @@ export type ArtItem = {
   clickedOriginal: string
   clickedSource: string
   clickedColor?: string
+  originalForceSingleLine?: boolean
+  originalFontScale?: number
 }
 
 export const timelinePoints: TimelinePoint[] = [
@@ -175,6 +177,17 @@ export const videoItems: VideoItem[] = [
 ]
 
 export const artItems: ArtItem[] = [
+  {
+    id: 'art-0',
+    original: 'यावत् सुभूते लक्षणसम्पत् तावन् मृषासम्पत्',
+    translation: '凡所有相，皆是虚妄',
+    source: '《金刚经》',
+    clickedOriginal: '愚者自以为觉，窃窃然知之。',
+    clickedSource: '《庄子·内篇·齐物论》',
+    clickedColor: 'rgb(203, 166, 247)',
+    originalForceSingleLine: true,
+    originalFontScale: 0.82,
+  },
   {
     id: 'art-1',
     original: "If you can't tell, does it matter?",

@@ -523,7 +523,7 @@ export default function PresentationApp() {
           } else if (isNext) {
             transformStr = `translateY(100%) scale(1)`
           } else {
-            transformStr = `translateY(0%) scale(1)`
+            transformStr = 'none'
           }
 
           return (
@@ -533,7 +533,10 @@ export default function PresentationApp() {
               className={`page-slot ${isActive ? 'is-active' : 'is-adjacent'} ${isPrev ? 'is-prev' : ''} ${isNext ? 'is-next' : ''}`}
               data-page-slot={index}
               data-page-key={page.key}
-              style={{ transform: transformStr }}
+              style={{
+                transform: transformStr,
+                willChange: isActive ? 'auto' : 'transform, opacity, filter',
+              }}
               tabIndex={-1}
               aria-hidden={!isActive}
             >
@@ -1290,6 +1293,10 @@ function drawCanvasTextLayer(
   spotlight: { x: number; y: number; active: boolean },
   spotlightRadius: number,
   eraseInSpotlight: boolean,
+  options?: {
+    forceSingleLine?: boolean
+    fontScale?: number
+  },
 ) {
   const width = canvas.clientWidth
   const height = canvas.clientHeight
@@ -1308,6 +1315,9 @@ function drawCanvasTextLayer(
   ctx.fillRect(0, 0, width, height)
 
   let fontSize = Math.min(Math.max(width * 0.066, 42), 88)
+  if (options?.fontScale && options.fontScale > 0) {
+    fontSize *= options.fontScale
+  }
   ctx.font = `700 ${fontSize}px ${ART_CANVAS_FONT_STACK}`
 
   if (!text.includes('\n')) {
@@ -1324,7 +1334,7 @@ function drawCanvasTextLayer(
   ctx.textBaseline = 'middle'
   ctx.fillStyle = color
 
-  const lines = wrapCanvasText(text, width * 0.94, ctx)
+  const lines = options?.forceSingleLine ? [text] : wrapCanvasText(text, width * 0.94, ctx)
   const totalHeight = (lines.length - 1) * lineHeight
   const startY = height / 2 - totalHeight / 2
   for (let i = 0; i < lines.length; i += 1) {
@@ -1376,8 +1386,19 @@ function ArtPage({
 
     const spotlightRadius = reducedMotion ? 90 : 130
     drawCanvasTextLayer(bottomCanvas, activeArt.translation, 'rgba(255, 86, 86, 0.9)', spotlight, spotlightRadius, false)
-    drawCanvasTextLayer(topCanvas, activeArt.original, 'rgba(248, 248, 245, 0.95)', spotlight, spotlightRadius, true)
-  }, [activeArt.original, activeArt.translation, isRevealed, reducedMotion, spotlight])
+    drawCanvasTextLayer(topCanvas, activeArt.original, 'rgba(248, 248, 245, 0.95)', spotlight, spotlightRadius, true, {
+      forceSingleLine: activeArt.originalForceSingleLine,
+      fontScale: activeArt.originalFontScale,
+    })
+  }, [
+    activeArt.original,
+    activeArt.translation,
+    activeArt.originalForceSingleLine,
+    activeArt.originalFontScale,
+    isRevealed,
+    reducedMotion,
+    spotlight,
+  ])
 
   useEffect(() => {
     renderArtCanvases()
@@ -1418,7 +1439,7 @@ function ArtPage({
           type="button"
           className="art-toggle-layer"
           onClick={() => {
-            setRevealedById((prev) => ({ ...prev, [activeArt.id]: true }))
+            setRevealedById((prev) => ({ ...prev, [activeArt.id]: !prev[activeArt.id] }))
           }}
         >
           {isRevealed ? (

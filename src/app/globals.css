@@ -216,7 +216,7 @@ select {
     opacity var(--dur-base) ease,
     filter var(--dur-slow) cubic-bezier(0.22, 0.74, 0.24, 1);
   opacity: 1;
-  filter: blur(0px);
+  filter: none;
   z-index: 0;
   outline: none;
   will-change: transform, opacity, filter;
@@ -224,6 +224,7 @@ select {
 
 .page-slot.is-active {
   pointer-events: auto;
+  will-change: auto;
 }
 
 .page-slot.is-adjacent {
@@ -236,7 +237,7 @@ select {
 }
 
 .page-slot.is-next {
-  filter: blur(0px);
+  filter: none;
 }
 
 .page-surface {
@@ -672,6 +673,7 @@ select {
 .card-front {
   transform: rotateY(180deg);
   text-align: left;
+  align-content: start;
 }
 
 .card-face strong {
@@ -1097,6 +1099,7 @@ thead {
 
 .page-art {
   position: relative;
+  isolation: isolate;
   color: #f4f4f2;
 }
 
