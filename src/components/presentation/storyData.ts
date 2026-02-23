@@ -151,22 +151,10 @@ export const galleryItems: GalleryItem[] = [
 
 export const videoItems: VideoItem[] = [
   {
-    id: 'video-1',
-    title: '电影模仿',
-    note: '',
-    src: '/media/videos/1-电影模仿.mp4',
-  },
-  {
     id: 'video-2',
     title: '书籍广告',
     note: '',
     src: '/media/videos/2-书籍广告.mp4',
-  },
-  {
-    id: 'video-3',
-    title: '耳机广告',
-    note: '',
-    src: '/media/videos/3-耳机广告.mp4',
   },
   {
     id: 'video-4',
