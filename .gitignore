@@ -39,10 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# windows portable/package helpers
-/.win-tools/
-/.win-tools-cache/
-/start-win-3060.cmd
-/dist/win-portable-3060/
-/dist/win-portable-3060.zip
